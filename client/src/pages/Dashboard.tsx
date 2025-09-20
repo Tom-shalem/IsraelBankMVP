@@ -4,9 +4,11 @@ import { AccountCard } from "@/components/banking/AccountCard"
 import { TotalBalanceCard } from "@/components/banking/TotalBalanceCard"
 import { TransferForm } from "@/components/banking/TransferForm"
 import { TransactionHistory } from "@/components/banking/TransactionHistory"
+import { TransferLogs } from "@/components/banking/TransferLogs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getAccountBalances } from "@/api/banking"
 import { useToast } from "@/hooks/useToast"
-import { Loader2 } from "lucide-react"
+import { Loader2, Send, History, Activity } from "lucide-react"
 
 interface AccountBalances {
   checking: number
@@ -98,10 +100,30 @@ export function Dashboard() {
         <TotalBalanceCard totalBalance={totalBalance} />
       </div>
 
-      {/* Transfer and Transaction Section */}
+      {/* Transfer and Activity Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <TransferForm onTransferSuccess={handleTransferSuccess} />
-        <TransactionHistory />
+        
+        <div className="bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-xl p-6">
+          <Tabs defaultValue="activity" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="activity" className="flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                Transfer Activity
+              </TabsTrigger>
+              <TabsTrigger value="history" className="flex items-center gap-2">
+                <History className="h-4 w-4" />
+                Transaction History
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="activity" className="mt-0">
+              <TransferLogs />
+            </TabsContent>
+            <TabsContent value="history" className="mt-0">
+              <TransactionHistory />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   )

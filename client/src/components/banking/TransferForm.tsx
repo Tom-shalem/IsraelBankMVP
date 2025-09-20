@@ -1,14 +1,15 @@
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/useToast"
 import { transferMoney } from "@/api/banking"
-import { Send, Loader2, ArrowRight } from "lucide-react"
+import { Send, Loader2 } from "lucide-react"
+import { logTransferAction } from "@/utils/transferLogger"
 
 interface TransferFormProps {
-  onTransferSuccess?: () => void
+  onTransferSuccess: () => void
 }
 
 export function TransferForm({ onTransferSuccess }: TransferFormProps) {
@@ -21,9 +22,15 @@ export function TransferForm({ onTransferSuccess }: TransferFormProps) {
     e.preventDefault()
     
     if (!recipientEmail || !amount) {
+      const errorMsg = "Please fill in all fields"
+      logTransferAction('validation_error', errorMsg, {
+        recipientEmail: recipientEmail || undefined,
+        amount: amount ? parseFloat(amount) : undefined,
+        errorMessage: errorMsg
+      })
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: errorMsg,
         variant: "destructive",
       })
       return
@@ -31,9 +38,15 @@ export function TransferForm({ onTransferSuccess }: TransferFormProps) {
 
     const transferAmount = parseFloat(amount)
     if (isNaN(transferAmount) || transferAmount <= 0) {
+      const errorMsg = "Please enter a valid amount"
+      logTransferAction('validation_error', errorMsg, {
+        recipientEmail,
+        amount: transferAmount,
+        errorMessage: errorMsg
+      })
       toast({
         title: "Error",
-        description: "Please enter a valid amount",
+        description: errorMsg,
         variant: "destructive",
       })
       return
@@ -41,23 +54,42 @@ export function TransferForm({ onTransferSuccess }: TransferFormProps) {
 
     try {
       setIsLoading(true)
-      const response = await transferMoney(recipientEmail, transferAmount)
       
-      toast({
-        title: "Transfer Successful",
-        description: response.message,
+      logTransferAction('transfer_initiated', `Transfer initiated to ${recipientEmail}`, {
+        amount: transferAmount,
+        recipientEmail
       })
-      
-      // Reset form
+
+      await transferMoney({
+        recipientEmail,
+        amount: transferAmount,
+      })
+
+      logTransferAction('transfer_success', `Successfully transferred to ${recipientEmail}`, {
+        amount: transferAmount,
+        recipientEmail
+      })
+
+      toast({
+        title: "Success",
+        description: `Successfully transferred ₪${transferAmount.toFixed(2)} to ${recipientEmail}`,
+      })
+
       setRecipientEmail("")
       setAmount("")
-      
-      // Notify parent component
-      onTransferSuccess?.()
+      onTransferSuccess()
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Transfer failed"
+      
+      logTransferAction('transfer_failed', `Transfer failed to ${recipientEmail}`, {
+        amount: transferAmount,
+        recipientEmail,
+        errorMessage
+      })
+
       toast({
-        title: "Transfer Failed",
-        description: error instanceof Error ? error.message : "An error occurred",
+        title: "Error",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -68,17 +100,18 @@ export function TransferForm({ onTransferSuccess }: TransferFormProps) {
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+        <CardTitle className="flex items-center gap-2">
           <Send className="h-5 w-5 text-blue-600" />
           Transfer Money
         </CardTitle>
+        <CardDescription>
+          Send money to another account instantly
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="recipient" className="text-sm font-medium text-gray-700">
-              Recipient Email
-            </Label>
+            <Label htmlFor="recipient">Recipient Email</Label>
             <Input
               id="recipient"
               type="email"
@@ -86,14 +119,11 @@ export function TransferForm({ onTransferSuccess }: TransferFormProps) {
               value={recipientEmail}
               onChange={(e) => setRecipientEmail(e.target.value)}
               disabled={isLoading}
-              className="bg-white/50 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              className="bg-white/50"
             />
           </div>
-          
           <div className="space-y-2">
-            <Label htmlFor="amount" className="text-sm font-medium text-gray-700">
-              Amount (₪)
-            </Label>
+            <Label htmlFor="amount">Amount (ILS)</Label>
             <Input
               id="amount"
               type="number"
@@ -103,24 +133,23 @@ export function TransferForm({ onTransferSuccess }: TransferFormProps) {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               disabled={isLoading}
-              className="bg-white/50 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              className="bg-white/50"
             />
           </div>
-          
           <Button
             type="submit"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg disabled:opacity-50"
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processing...
               </>
             ) : (
               <>
-                Transfer
-                <ArrowRight className="h-4 w-4 ml-2" />
+                <Send className="mr-2 h-4 w-4" />
+                Transfer Money
               </>
             )}
           </Button>
