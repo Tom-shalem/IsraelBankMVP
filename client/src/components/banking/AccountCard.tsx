@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { formatILSWithSymbol } from "@/utils/currency"
-import { Wallet, PiggyBank, CreditCard } from "lucide-react"
+import { formatILS } from "@/utils/currency"
+import { CreditCard, PiggyBank, Wallet } from "lucide-react"
 
 interface AccountCardProps {
   title: string
@@ -14,13 +13,13 @@ export function AccountCard({ title, balance, accountNumber, type }: AccountCard
   const getIcon = () => {
     switch (type) {
       case 'checking':
-        return <Wallet className="h-5 w-5 text-blue-600" />
+        return <Wallet className="h-6 w-6 text-blue-600" />
       case 'savings':
-        return <PiggyBank className="h-5 w-5 text-green-600" />
+        return <PiggyBank className="h-6 w-6 text-green-600" />
       case 'credit':
-        return <CreditCard className="h-5 w-5 text-purple-600" />
+        return <CreditCard className="h-6 w-6 text-red-600" />
       default:
-        return <Wallet className="h-5 w-5 text-blue-600" />
+        return <Wallet className="h-6 w-6 text-blue-600" />
     }
   }
 
@@ -31,34 +30,22 @@ export function AccountCard({ title, balance, accountNumber, type }: AccountCard
     return balance >= 0 ? 'text-green-600' : 'text-red-600'
   }
 
-  const getBadgeVariant = () => {
-    if (type === 'credit') {
-      return balance < 0 ? 'destructive' : 'default'
-    }
-    return balance >= 0 ? 'default' : 'destructive'
-  }
-
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-sm font-medium text-gray-600">
-          <div className="flex items-center gap-2">
-            {getIcon()}
-            {title}
-          </div>
-          <Badge variant="outline" className="text-xs">
-            {accountNumber}
-          </Badge>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-gray-600">
+          {title}
         </CardTitle>
+        {getIcon()}
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
+        <div className="space-y-1">
           <div className={`text-2xl font-bold ${getBalanceColor()}`}>
-            {formatILSWithSymbol(balance)}
+            {formatILS(balance)}
           </div>
-          <Badge variant={getBadgeVariant()} className="text-xs">
-            {type === 'credit' && balance < 0 ? 'Outstanding' : 'Available'}
-          </Badge>
+          <p className="text-xs text-gray-500">
+            Account: {accountNumber}
+          </p>
         </div>
       </CardContent>
     </Card>
