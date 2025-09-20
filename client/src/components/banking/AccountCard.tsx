@@ -9,14 +9,16 @@ interface AccountCardProps {
 
 export function AccountCard({ title, balance, icon }: AccountCardProps) {
   const formatBalance = (amount: number) => {
-    return new Intl.NumberFormat('he-IL', {
-      style: 'currency',
-      currency: 'ILS',
-      minimumFractionDigits: 2,
-    }).format(amount)
+    const isNegative = amount < 0
+    const formattedAmount = `₪${Math.abs(amount).toFixed(2)}`
+    return isNegative ? `-${formattedAmount}` : formattedAmount
   }
 
-  const isNegative = balance < 0
+  const getBalanceColor = (amount: number) => {
+    if (amount < 0) return "text-red-600"
+    if (amount > 10000) return "text-green-600"
+    return "text-gray-800"
+  }
 
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
@@ -29,7 +31,7 @@ export function AccountCard({ title, balance, icon }: AccountCardProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <div className={`text-2xl font-bold ${isNegative ? 'text-red-600' : 'text-gray-800'}`}>
+        <div className={`text-2xl font-bold ${getBalanceColor(balance)}`}>
           {formatBalance(balance)}
         </div>
       </CardContent>
