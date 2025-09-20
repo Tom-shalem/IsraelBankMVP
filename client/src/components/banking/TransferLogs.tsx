@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/useToast"
 import { getTransactions } from "@/api/banking"
-import { ArrowUpRight, ArrowDownLeft, Loader2, Activity, Filter } from "lucide-react"
+import { ArrowUpRight, ArrowDownLeft, Loader2, Activity, Filter, RefreshCw } from "lucide-react"
 import { formatILSWithSymbol } from "@/utils/currency"
 import { buildRecentTransactions } from "@/utils/transactionNormalizer"
+import { Button } from "@/components/ui/button"
 
 interface Transaction {
   id: string
@@ -23,11 +24,16 @@ interface Transaction {
 export function TransferLogs() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const { toast } = useToast()
 
-  const loadTransactions = async () => {
+  const loadTransactions = async (showRefreshIndicator = false) => {
     try {
-      setIsLoading(true)
+      if (showRefreshIndicator) {
+        setIsRefreshing(true)
+      } else {
+        setIsLoading(true)
+      }
       const response = await getTransactions()
       setTransactions(response.transactions || [])
     } catch (error) {
@@ -38,12 +44,34 @@ export function TransferLogs() {
       })
     } finally {
       setIsLoading(false)
+      setIsRefreshing(false)
     }
   }
 
   useEffect(() => {
     loadTransactions()
+
+    // Listen for transfer completion events
+    const handleTransferCompleted = () => {
+      loadTransactions(true)
+    }
+
+    window.addEventListener('transferCompleted', handleTransferCompleted)
+
+    // Also refresh every 30 seconds to catch any updates
+    const interval = setInterval(() => {
+      loadTransactions(true)
+    }, 30000)
+
+    return () => {
+      window.removeEventListener('transferCompleted', handleTransferCompleted)
+      clearInterval(interval)
+    }
   }, [])
+
+  const handleRefresh = () => {
+    loadTransactions(true)
+  }
 
   const formatAmount = (amount: number, sign: string) => {
     return `${sign}${formatILSWithSymbol(Math.abs(amount))}`
@@ -166,30 +194,44 @@ export function TransferLogs() {
   return (
     <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-gray-800">
-          <Activity className="h-5 w-5 text-blue-600" />
-          Transfer Activity
-        </CardTitle>
-        <p className="text-sm text-gray-600">View all your transfer history</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-gray-800">
+              <Activity className="h-5 w-5 text-blue-600" />
+              Transfer Activity
+            </CardTitle>
+            <p className="text-sm text-gray-600">View all your transfer history</p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="bg-white/60 hover:bg-blue-50 border-gray-200 hover:border-blue-300 transition-all duration-200"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-6 bg-gray-100/80 p-1 rounded-lg">
-            <TabsTrigger 
-              value="all" 
+            <TabsTrigger
+              value="all"
               className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 transition-all duration-200"
             >
               <Filter className="h-4 w-4 mr-2" />
               All ({allTransactions.length})
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="received"
               className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-green-600 transition-all duration-200"
             >
               <ArrowDownLeft className="h-4 w-4 mr-2" />
               Received ({receivedTransactions.length})
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="sent"
               className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-red-600 transition-all duration-200"
             >
@@ -197,15 +239,15 @@ export function TransferLogs() {
               Sent ({sentTransactions.length})
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="all" className="mt-0">
             {renderTransactionList(allTransactions, "No transfer activity yet")}
           </TabsContent>
-          
+
           <TabsContent value="received" className="mt-0">
             {renderTransactionList(receivedTransactions, "No transfers received yet")}
           </TabsContent>
-          
+
           <TabsContent value="sent" className="mt-0">
             {renderTransactionList(sentTransactions, "No transfers sent yet")}
           </TabsContent>
