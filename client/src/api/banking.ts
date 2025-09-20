@@ -18,8 +18,8 @@ export const getAccountBalances = () => {
       // Default balances for new users
       const defaultBalances = {
         'client@client.com': {
-          checking: 5000.00,
-          savings: 15000.00,
+          checking: 50000.00,
+          savings: 62500.00,
           credit: -2500.00
         },
         'amit@client.com': {
