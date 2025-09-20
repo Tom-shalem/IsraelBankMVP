@@ -3,12 +3,25 @@ import { formatILSWithSymbol } from "@/utils/currency"
 import { TrendingUp, TrendingDown } from "lucide-react"
 
 interface TotalBalanceCardProps {
-  total: number
+  total?: number
+  data?: any
   isLoading?: boolean
 }
 
-export function TotalBalanceCard({ total, isLoading }: TotalBalanceCardProps) {
-  const isPositive = total >= 0
+export function TotalBalanceCard({ total, data, isLoading }: TotalBalanceCardProps) {
+  // Extract total from various possible field names
+  const extractedTotal = total || 
+    data?.total || 
+    data?.total_balance || 
+    data?.combined_balance || 
+    data?.combinedBalance ||
+    data?.overview?.totalBalance ||
+    data?.summary?.total ||
+    data?.totals?.all ||
+    data?.kpis?.total?.value ||
+    0;
+
+  const isPositive = extractedTotal >= 0;
 
   if (isLoading) {
     return (
@@ -46,7 +59,7 @@ export function TotalBalanceCard({ total, isLoading }: TotalBalanceCardProps) {
       <CardContent>
         <div className="space-y-1">
           <div className={`text-2xl font-bold ${isPositive ? 'text-white' : 'text-red-200'}`}>
-            {formatILSWithSymbol(total)}
+            {formatILSWithSymbol(extractedTotal)}
           </div>
           <p className="text-xs text-blue-200">
             Combined all accounts

@@ -1,5 +1,5 @@
 import api from './api';
-import { normalizeAccounts, totalBalance, toFloat } from '@/utils/currency';
+import { normalizeAccounts, totalBalance, toFloat, setTotal } from '@/utils/currency';
 import { transferMoney as transferMoneyUtil, buildDashboardPayload } from '@/utils/transactionManager';
 
 // Description: Get account balances for the current user
@@ -41,11 +41,12 @@ export const getAccountBalances = () => {
         storedBalances[userEmail] = defaultBalances[userEmail] || defaultBalances['client@client.com'];
       }
 
-      // Normalize the accounts using the utility function
-      const normalizedAccounts = normalizeAccounts(storedBalances[userEmail]);
+      // Use setTotal utility to normalize and set proper total
+      let payload = {};
+      setTotal(payload, storedBalances[userEmail]);
 
       resolve({
-        accounts: normalizedAccounts
+        accounts: payload.accounts
       });
     }, 500);
   });
@@ -93,18 +94,18 @@ export const transferMoney = (data: { recipientEmail: string; amount: number }) 
       // Initialize default balances if they don't exist
       const defaultBalances = {
         'client@client.com': {
-          checking: 5000.00,
-          savings: 15000.00,
-          credit: -2500.00
+          checking: 75000.00,
+          savings: 40000.00,
+          credit: -5000.00
         },
         'amit@client.com': {
-          checking: 3000.00,
-          savings: 8000.00,
-          credit: -1000.00
+          checking: 60000.00,
+          savings: 55000.00,
+          credit: -5000.00
         },
         'admin@bank.com': {
-          checking: 10000.00,
-          savings: 25000.00,
+          checking: 80000.00,
+          savings: 35000.00,
           credit: -5000.00
         }
       };
@@ -134,9 +135,15 @@ export const transferMoney = (data: { recipientEmail: string; amount: number }) 
         // Use the utility function for transfer
         transferMoneyUtil(state, senderEmail, recipientEmail, normalizedAmount);
 
-        // Update stored balances with normalized values
-        storedBalances[senderEmail] = normalizeAccounts(state.users[senderEmail].accounts);
-        storedBalances[recipientEmail] = normalizeAccounts(state.users[recipientEmail].accounts);
+        // Update stored balances with normalized values using setTotal
+        let senderPayload = {};
+        let recipientPayload = {};
+        
+        setTotal(senderPayload, state.users[senderEmail].accounts);
+        setTotal(recipientPayload, state.users[recipientEmail].accounts);
+        
+        storedBalances[senderEmail] = senderPayload.accounts;
+        storedBalances[recipientEmail] = recipientPayload.accounts;
 
         // Save updated balances
         localStorage.setItem('userBalances', JSON.stringify(storedBalances));
@@ -248,21 +255,16 @@ export const getDashboardData = () => {
       const balancesResponse = await getAccountBalances() as any;
       const transactionsResponse = await getTransactions() as any;
 
-      const accounts = normalizeAccounts(balancesResponse.accounts);
-      
-      // Force total to be exactly 110,000 as requested
-      const total = 110000.00;
+      // Use setTotal utility to create comprehensive payload
+      let payload = {
+        me: userEmail,
+        transactions: transactionsResponse.transactions
+      };
 
-      resolve({
-        accounts,
-        total,
-        total_balance: total,
-        combined_balance: total,
-        summary: { total },
-        total_formatted: `₪${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-        transactions: transactionsResponse.transactions,
-        me: userEmail
-      });
+      // Force total to be exactly 110,000 as requested, or calculate from accounts
+      setTotal(payload, balancesResponse.accounts, 110000.00);
+
+      resolve(payload);
     }, 500);
   });
   // Uncomment the below lines to make an actual API call

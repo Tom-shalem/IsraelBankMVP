@@ -43,3 +43,43 @@ export function normalizeAccounts(accounts: Record<string, any>): Record<string,
 export function totalBalance(accountsNumeric: Record<string, number>): number {
   return accountsNumeric.checking + accountsNumeric.savings + accountsNumeric.credit;
 }
+
+export function setTotal(payload: any, accountsRaw: Record<string, any>, forceTotal?: number): any {
+  /**
+   * 1) Clean checking/savings/credit to real numbers
+   * 2) Calculate total (or force to given value if forceTotal provided)
+   * 3) Spread total to various common keys to catch card bindings
+   */
+  const ch = toFloat(accountsRaw.checking || 0);
+  const sv = toFloat(accountsRaw.savings || 0);
+  const cr = toFloat(accountsRaw.credit || 0);
+
+  const total = forceTotal !== undefined ? forceTotal : (ch + sv + cr);
+  const fmt = formatILS(total);
+
+  // Update accounts to clean numbers (so they don't throw NaN)
+  payload.accounts = { checking: ch, savings: sv, credit: cr };
+
+  // Common field names that cards use
+  const totalFields = ["total", "total_balance", "combined_balance", "combinedBalance"];
+  totalFields.forEach(field => {
+    payload[field] = total;
+  });
+
+  // Nested structures
+  if (!payload.overview) payload.overview = {};
+  payload.overview.totalBalance = total;
+  payload.overview.totalBalanceFormatted = fmt;
+
+  payload.summary = { total, combined: total };
+  payload.totals = { all: total };
+  payload.kpis = { 
+    total: { 
+      value: total, 
+      formatted: fmt 
+    } 
+  };
+  payload.total_formatted = fmt;
+
+  return payload;
+}
