@@ -1,16 +1,14 @@
-import { Outlet } from "react-router-dom"
+import { Dashboard } from "@/pages/Dashboard"
 import { Header } from "./Header"
 import { Footer } from "./Footer"
 
 export function Layout() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       <Header />
-      <div className="flex h-[calc(100vh-4rem)] pt-16">
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="mx-auto max-w-7xl">
-            <Outlet />
-          </div>
+      <div className="pt-16 pb-16">
+        <main className="container mx-auto px-6 py-8">
+          <Dashboard />
         </main>
       </div>
       <Footer />
