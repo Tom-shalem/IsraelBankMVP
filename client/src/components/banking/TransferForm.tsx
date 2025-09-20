@@ -2,7 +2,6 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -35,6 +34,10 @@ export function TransferForm({ onTransferComplete }: TransferFormProps) {
     reset
   } = useForm<TransferFormData>({
     resolver: zodResolver(transferSchema),
+    defaultValues: {
+      recipientEmail: "",
+      amount: "500"
+    }
   })
 
   const onSubmit = async (data: TransferFormData) => {
@@ -46,7 +49,7 @@ export function TransferForm({ onTransferComplete }: TransferFormProps) {
         title: "Transfer Successful",
         description: `₪${data.amount} transferred to ${data.recipientEmail}`,
       })
-      reset()
+      reset({ recipientEmail: "", amount: "500" })
       onTransferComplete()
     } catch (error) {
       toast({
@@ -60,49 +63,50 @@ export function TransferForm({ onTransferComplete }: TransferFormProps) {
   }
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-gray-800">
-          <Send className="h-5 w-5 text-blue-600" />
-          Transfer Money
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <div>
+      <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <Send className="h-5 w-5 text-blue-600" />
+        Transfer Money
+      </h3>
+      
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="recipientEmail" className="text-gray-600 text-sm">
+            Send To (email)
+          </Label>
+          <Input
+            id="recipientEmail"
+            type="email"
+            placeholder="amit@client.com"
+            className="w-full bg-white/70 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
+            {...register("recipientEmail")}
+          />
+          {errors.recipientEmail && (
+            <p className="text-sm text-red-600">{errors.recipientEmail.message}</p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 items-end">
           <div className="space-y-2">
-            <Label htmlFor="recipientEmail" className="text-gray-700">
-              Recipient Email
-            </Label>
-            <Input
-              id="recipientEmail"
-              type="email"
-              placeholder="Enter recipient's email"
-              className="bg-white/70 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              {...register("recipientEmail")}
-            />
-            {errors.recipientEmail && (
-              <p className="text-sm text-red-600">{errors.recipientEmail.message}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="amount" className="text-gray-700">
-              Amount (₪)
+            <Label htmlFor="amount" className="text-gray-600 text-sm">
+              Amount (ILS)
             </Label>
             <Input
               id="amount"
               type="number"
               step="0.01"
-              placeholder="Enter amount"
-              className="bg-white/70 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              min="0.01"
+              className="bg-white/70 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
               {...register("amount")}
             />
             {errors.amount && (
               <p className="text-sm text-red-600">{errors.amount.message}</p>
             )}
           </div>
+          
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 hover:shadow-lg border-0 md:self-end"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -117,8 +121,12 @@ export function TransferForm({ onTransferComplete }: TransferFormProps) {
               </>
             )}
           </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+
+        <p className="text-gray-500 text-xs mt-3">
+          * No CSRF protection (for later demo).
+        </p>
+      </form>
+    </div>
   )
 }

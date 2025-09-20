@@ -6,10 +6,9 @@ import { AccountCard } from "@/components/banking/AccountCard"
 import { TotalBalanceCard } from "@/components/banking/TotalBalanceCard"
 import { TransferForm } from "@/components/banking/TransferForm"
 import { TransactionHistory } from "@/components/banking/TransactionHistory"
-import { DemoAccountsCard } from "@/components/banking/DemoAccountsCard"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Wallet, CreditCard, PiggyBank, Loader2 } from "lucide-react"
+import { Wallet, CreditCard, PiggyBank, Loader2, Send, Clock } from "lucide-react"
 import { getDisplayName } from "@/utils/userNames"
+import { Button } from "@/components/ui/button"
 
 interface AccountBalances {
   checking: number
@@ -22,6 +21,7 @@ export function Dashboard() {
   const { toast } = useToast()
   const [balances, setBalances] = useState<AccountBalances | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [activeSection, setActiveSection] = useState<'transfer' | 'transactions'>('transfer')
 
   const loadBalances = async () => {
     try {
@@ -67,75 +67,101 @@ export function Dashboard() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Section */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Welcome back, {currentUser?.email ? getDisplayName(currentUser.email) : 'User'}!
-        </h1>
-        <p className="text-gray-600">
-          Account Number: ****1234
-        </p>
-      </div>
-
-      {/* Total Balance - Prominently displayed */}
-      <div className="flex justify-center">
-        <div className="w-full max-w-sm">
-          <TotalBalanceCard totalBalance={totalBalance} />
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Main Card Container */}
+      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+        {/* Welcome Section */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-800 mb-1">
+            Welcome {currentUser?.email ? getDisplayName(currentUser.email) : 'User'}
+          </h1>
+          <p className="text-gray-500 text-sm">
+            Account: ****1234
+          </p>
         </div>
-      </div>
 
-      {/* Account Balances */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <AccountCard
-          title="Checking Account"
-          balance={balances?.checking || 0}
-          icon={<Wallet className="h-4 w-4" />}
-        />
-        <AccountCard
-          title="Savings Account"
-          balance={balances?.savings || 0}
-          icon={<PiggyBank className="h-4 w-4" />}
-        />
-        <AccountCard
-          title="Credit Account"
-          balance={balances?.credit || 0}
-          icon={<CreditCard className="h-4 w-4" />}
-        />
-      </div>
+        {/* Account Balances Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-slate-50/80 border border-gray-200/60 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Wallet className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-500 text-sm">Checking</span>
+            </div>
+            <div className="text-xl font-semibold text-gray-800">
+              ₪{balances?.checking?.toLocaleString() || '0'}
+            </div>
+          </div>
+          <div className="bg-slate-50/80 border border-gray-200/60 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <PiggyBank className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-500 text-sm">Savings</span>
+            </div>
+            <div className="text-xl font-semibold text-gray-800">
+              ₪{balances?.savings?.toLocaleString() || '0'}
+            </div>
+          </div>
+          <div className="bg-slate-50/80 border border-gray-200/60 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <CreditCard className="h-4 w-4 text-gray-500" />
+              <span className="text-gray-500 text-sm">Credit</span>
+            </div>
+            <div className="text-xl font-semibold text-gray-800">
+              ₪{balances?.credit?.toLocaleString() || '0'}
+            </div>
+          </div>
+        </div>
 
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="transfer" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-          <TabsTrigger value="transfer" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+        {/* Total Balance Card */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-4 mb-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-800">Total Balance</h3>
+            <div className="text-xl font-bold text-gray-800">
+              ₪{totalBalance.toLocaleString()}
+            </div>
+          </div>
+        </div>
+
+        {/* Section Toggle Buttons */}
+        <div className="bg-white/60 backdrop-blur-sm rounded-xl p-3 flex gap-3 items-center mb-6">
+          <Button
+            onClick={() => setActiveSection('transfer')}
+            className={`px-4 py-2 rounded-lg border-0 font-medium transition-all ${
+              activeSection === 'transfer'
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                : 'bg-gray-200/60 text-gray-600 opacity-60 cursor-default'
+            }`}
+            disabled={activeSection !== 'transfer'}
+          >
+            <Send className="h-4 w-4 mr-2" />
             Transfer Money
-          </TabsTrigger>
-          <TabsTrigger value="transactions" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+          </Button>
+          <Button
+            onClick={() => setActiveSection('transactions')}
+            className={`px-4 py-2 rounded-lg border-0 font-medium transition-all ${
+              activeSection === 'transactions'
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                : 'bg-gray-200/60 text-gray-600 opacity-60 cursor-default'
+            }`}
+            disabled={activeSection !== 'transactions'}
+          >
+            <Clock className="h-4 w-4 mr-2" />
             Recent Transactions
-          </TabsTrigger>
-          <TabsTrigger value="demo" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-            Demo Accounts
-          </TabsTrigger>
-        </TabsList>
+          </Button>
+        </div>
 
-        <TabsContent value="transfer" className="mt-6">
-          <div className="max-w-md mx-auto">
+        {/* Active Section Content */}
+        {activeSection === 'transfer' && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-6">
             <TransferForm onTransferComplete={handleTransferComplete} />
           </div>
-        </TabsContent>
+        )}
 
-        <TabsContent value="transactions" className="mt-6">
-          <div className="max-w-2xl mx-auto">
+        {activeSection === 'transactions' && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-6">
             <TransactionHistory key={Date.now()} />
           </div>
-        </TabsContent>
-
-        <TabsContent value="demo" className="mt-6">
-          <div className="max-w-md mx-auto">
-            <DemoAccountsCard />
-          </div>
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   )
 }
