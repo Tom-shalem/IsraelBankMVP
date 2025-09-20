@@ -9,6 +9,7 @@ import { TransactionHistory } from "@/components/banking/TransactionHistory"
 import { DemoAccountsCard } from "@/components/banking/DemoAccountsCard"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Wallet, CreditCard, PiggyBank, Loader2 } from "lucide-react"
+import { getDisplayName } from "@/utils/userNames"
 
 interface AccountBalances {
   checking: number
@@ -70,7 +71,7 @@ export function Dashboard() {
       {/* Welcome Section */}
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Welcome back, {currentUser?.email?.split('@')[0] || 'User'}!
+          Welcome back, {currentUser?.email ? getDisplayName(currentUser.email) : 'User'}!
         </h1>
         <p className="text-gray-600">
           Account Number: ****1234
@@ -116,19 +117,19 @@ export function Dashboard() {
             Demo Accounts
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="transfer" className="mt-6">
           <div className="max-w-md mx-auto">
             <TransferForm onTransferComplete={handleTransferComplete} />
           </div>
         </TabsContent>
-        
+
         <TabsContent value="transactions" className="mt-6">
           <div className="max-w-2xl mx-auto">
             <TransactionHistory key={Date.now()} />
           </div>
         </TabsContent>
-        
+
         <TabsContent value="demo" className="mt-6">
           <div className="max-w-md mx-auto">
             <DemoAccountsCard />
