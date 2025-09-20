@@ -61,11 +61,12 @@ export const getAccountBalances = () => {
 // Endpoint: POST /api/banking/transfer
 // Request: { recipientEmail: string, amount: number }
 // Response: { success: boolean, message: string, transactionId: string }
-export const transferMoney = (recipientEmail: string, amount: number) => {
+export const transferMoney = (data: { recipientEmail: string; amount: number }) => {
   // Mocking the response
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       const senderEmail = localStorage.getItem('currentUserEmail') || 'client@client.com';
+      const { recipientEmail, amount } = data;
 
       if (recipientEmail === senderEmail) {
         reject(new Error('Cannot transfer money to yourself'));
