@@ -21,6 +21,7 @@ export function Dashboard() {
   const [balances, setBalances] = useState<AccountBalances | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeSection, setActiveSection] = useState<'transfer' | 'transactions'>('transfer')
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const loadBalances = async () => {
     try {
@@ -48,6 +49,7 @@ export function Dashboard() {
 
   const handleTransferComplete = () => {
     loadBalances()
+    setRefreshTrigger(prev => prev + 1)
   }
 
   const totalBalance = balances
@@ -163,7 +165,7 @@ export function Dashboard() {
 
         {activeSection === 'transactions' && (
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-6">
-            <TransactionHistory key={Date.now()} />
+            <TransactionHistory key={refreshTrigger} />
           </div>
         )}
       </div>
