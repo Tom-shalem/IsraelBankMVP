@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/useToast"
 import { getTransactions } from "@/api/banking"
 import { History, ArrowUpRight, ArrowDownLeft, Loader2 } from "lucide-react"
-import { formatILS } from "@/utils/currency"
+import { formatILSWithSymbol } from "@/utils/currency"
+import { buildRecentTransactions } from "@/utils/transactionNormalizer"
 
 interface Transaction {
   id: string
@@ -41,9 +41,8 @@ export function TransactionHistory() {
     loadTransactions()
   }, [])
 
-  const formatAmount = (amount: number) => {
-    const sign = amount >= 0 ? '+' : ''
-    return `${sign}₪${formatILS(Math.abs(amount))}`
+  const formatAmount = (amount: number, sign: string) => {
+    return `${sign}${formatILSWithSymbol(amount)}`
   }
 
   const formatDate = (dateString: string) => {
@@ -72,13 +71,17 @@ export function TransactionHistory() {
     )
   }
 
+  // Get current user email and normalize transactions
+  const currentUserEmail = localStorage.getItem('currentUserEmail') || 'client@client.com'
+  const normalizedTransactions = buildRecentTransactions(currentUserEmail, transactions)
+
   return (
     <div className="bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-xl p-6">
       <div className="flex items-center gap-2 mb-4">
         <History className="h-5 w-5 text-blue-600" />
         <h3 className="text-lg font-semibold text-gray-800">Recent Transactions</h3>
       </div>
-      {transactions.length === 0 ? (
+      {normalizedTransactions.length === 0 ? (
         <div className="text-center py-8">
           <History className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500">No transactions yet</p>
@@ -86,7 +89,7 @@ export function TransactionHistory() {
         </div>
       ) : (
         <div className="space-y-3 max-h-96 overflow-y-auto">
-          {transactions
+          {normalizedTransactions
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
             .map((transaction) => (
               <div
@@ -95,11 +98,11 @@ export function TransactionHistory() {
               >
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-full ${
-                    transaction.amount >= 0
+                    transaction.class === 'pos'
                       ? 'bg-green-100 text-green-600'
                       : 'bg-red-100 text-red-600'
                   }`}>
-                    {transaction.amount >= 0 ? (
+                    {transaction.incoming ? (
                       <ArrowDownLeft className="h-4 w-4" />
                     ) : (
                       <ArrowUpRight className="h-4 w-4" />
@@ -107,7 +110,7 @@ export function TransactionHistory() {
                   </div>
                   <div>
                     <p className="font-medium text-gray-800 text-sm">
-                      {transaction.description}
+                      {transaction.label} {transaction.peer}
                     </p>
                     <p className="text-xs text-gray-500">
                       {formatDate(transaction.date)}
@@ -116,14 +119,14 @@ export function TransactionHistory() {
                 </div>
                 <div className="text-right">
                   <Badge
-                    variant={transaction.amount >= 0 ? "default" : "destructive"}
+                    variant={transaction.class === 'pos' ? "default" : "destructive"}
                     className={`font-mono text-sm ${
-                      transaction.amount >= 0
+                      transaction.class === 'pos'
                         ? 'bg-green-100 text-green-700 hover:bg-green-100'
                         : 'bg-red-100 text-red-700 hover:bg-red-100'
                     }`}
                   >
-                    {formatAmount(transaction.amount)}
+                    {formatAmount(transaction.amount, transaction.sign)}
                   </Badge>
                 </div>
               </div>
