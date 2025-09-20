@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/useToast"
 import { useAuth } from "@/contexts/AuthContext"
+import { getAccountBalances } from "@/api/banking"
 import { AccountCard } from "@/components/banking/AccountCard"
 import { TotalBalanceCard } from "@/components/banking/TotalBalanceCard"
 import { TransferForm } from "@/components/banking/TransferForm"
 import { TransactionHistory } from "@/components/banking/TransactionHistory"
 import { TransferLogs } from "@/components/banking/TransferLogs"
+import { DemoAccountsCard } from "@/components/banking/DemoAccountsCard"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getAccountBalances } from "@/api/banking"
-import { useToast } from "@/hooks/useToast"
-import { Loader2, Send, History, Activity } from "lucide-react"
+import { Wallet, ArrowLeftRight, History, Activity, RefreshCw } from "lucide-react"
+import { formatILSWithSymbol } from "@/utils/currency"
 
 interface AccountBalances {
   checking: number
@@ -17,9 +21,14 @@ interface AccountBalances {
 }
 
 export function Dashboard() {
-  const { user } = useAuth()
-  const [balances, setBalances] = useState<AccountBalances | null>(null)
+  const [balances, setBalances] = useState<AccountBalances>({
+    checking: 0,
+    savings: 0,
+    credit: 0
+  })
   const [isLoading, setIsLoading] = useState(true)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const { user } = useAuth()
   const { toast } = useToast()
 
   const loadBalances = async () => {
@@ -40,91 +49,124 @@ export function Dashboard() {
 
   useEffect(() => {
     loadBalances()
-  }, [])
+  }, [refreshKey])
 
   const handleTransferSuccess = () => {
-    loadBalances()
+    // Refresh balances and transaction history
+    setRefreshKey(prev => prev + 1)
+    toast({
+      title: "Transfer Successful",
+      description: "Your transfer has been completed successfully",
+    })
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">Loading your account...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!balances) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-gray-600">Unable to load account information</p>
-      </div>
-    )
+  const handleRefresh = () => {
+    setRefreshKey(prev => prev + 1)
+    toast({
+      title: "Refreshed",
+      description: "Account data has been updated",
+    })
   }
 
   const totalBalance = balances.checking + balances.savings + balances.credit
 
   return (
     <div className="space-y-8">
-      {/* Welcome Section */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Welcome, {user?.email || 'User'}
-        </h1>
-        <p className="text-gray-600">Manage your accounts and transfers</p>
+      {/* Welcome Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Welcome back, {user?.email?.split('@')[0] || 'User'}!
+          </h1>
+          <p className="text-gray-600">Manage your accounts and transfers</p>
+        </div>
+        <Button
+          onClick={handleRefresh}
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </Button>
       </div>
 
-      {/* Account Balances */}
+      {/* Demo Accounts Card */}
+      <DemoAccountsCard />
+
+      {/* Account Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <AccountCard
           title="Checking Account"
           balance={balances.checking}
           accountNumber="****1234"
-          type="checking"
+          isLoading={isLoading}
+          icon={<Wallet className="h-5 w-5" />}
+          gradient="from-blue-500 to-blue-600"
         />
         <AccountCard
           title="Savings Account"
           balance={balances.savings}
           accountNumber="****5678"
-          type="savings"
+          isLoading={isLoading}
+          icon={<Wallet className="h-5 w-5" />}
+          gradient="from-green-500 to-green-600"
         />
         <AccountCard
           title="Credit Account"
           balance={balances.credit}
           accountNumber="****9012"
-          type="credit"
+          isLoading={isLoading}
+          icon={<Wallet className="h-5 w-5" />}
+          gradient="from-purple-500 to-purple-600"
         />
-        <TotalBalanceCard totalBalance={totalBalance} />
+        <TotalBalanceCard
+          total={totalBalance}
+          isLoading={isLoading}
+        />
       </div>
 
-      {/* Transfer and Activity Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <TransferForm onTransferSuccess={handleTransferSuccess} />
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-8 bg-white/80 backdrop-blur-sm shadow-sm border-0 p-1 rounded-xl">
+          <TabsTrigger 
+            value="overview" 
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-lg"
+          >
+            <History className="h-4 w-4 mr-2" />
+            Recent Activity
+          </TabsTrigger>
+          <TabsTrigger 
+            value="transfer"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-lg"
+          >
+            <ArrowLeftRight className="h-4 w-4 mr-2" />
+            Transfer Money
+          </TabsTrigger>
+          <TabsTrigger 
+            value="activity"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 rounded-lg"
+          >
+            <Activity className="h-4 w-4 mr-2" />
+            Transfer History
+          </TabsTrigger>
+        </TabsList>
         
-        <div className="bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-xl p-6">
-          <Tabs defaultValue="activity" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="activity" className="flex items-center gap-2">
-                <Activity className="h-4 w-4" />
-                Transfer Activity
-              </TabsTrigger>
-              <TabsTrigger value="history" className="flex items-center gap-2">
-                <History className="h-4 w-4" />
-                Transaction History
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="activity" className="mt-0">
-              <TransferLogs />
-            </TabsContent>
-            <TabsContent value="history" className="mt-0">
-              <TransactionHistory />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
+        <TabsContent value="overview" className="mt-0">
+          <TransactionHistory key={refreshKey} />
+        </TabsContent>
+        
+        <TabsContent value="transfer" className="mt-0">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <TransferForm onTransferSuccess={handleTransferSuccess} />
+            <TransactionHistory key={refreshKey} />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="activity" className="mt-0">
+          <TransferLogs key={refreshKey} />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

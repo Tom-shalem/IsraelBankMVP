@@ -46,6 +46,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.5.1",
+    "heroicons": "^2.2.0",
     "input-otp": "^1.4.1",
     "json-bigint": "^1.0.0",
     "lucide-react": "^0.460.0",
