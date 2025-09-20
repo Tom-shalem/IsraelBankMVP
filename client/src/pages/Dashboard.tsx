@@ -4,10 +4,9 @@ import { AccountCard } from "@/components/banking/AccountCard"
 import { TotalBalanceCard } from "@/components/banking/TotalBalanceCard"
 import { TransferForm } from "@/components/banking/TransferForm"
 import { TransactionHistory } from "@/components/banking/TransactionHistory"
-import { DemoAccountsCard } from "@/components/banking/DemoAccountsCard"
 import { getAccountBalances } from "@/api/banking"
 import { useToast } from "@/hooks/useToast"
-import { Loader2, Wallet } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 interface AccountBalances {
   checking: number
@@ -19,7 +18,6 @@ export function Dashboard() {
   const { user } = useAuth()
   const [balances, setBalances] = useState<AccountBalances | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [refreshKey, setRefreshKey] = useState(0)
   const { toast } = useToast()
 
   const loadBalances = async () => {
@@ -40,11 +38,10 @@ export function Dashboard() {
 
   useEffect(() => {
     loadBalances()
-  }, [refreshKey])
+  }, [])
 
   const handleTransferSuccess = () => {
-    // Refresh balances and transaction history
-    setRefreshKey(prev => prev + 1)
+    loadBalances()
   }
 
   if (isLoading) {
@@ -58,53 +55,53 @@ export function Dashboard() {
     )
   }
 
-  const totalBalance = balances 
-    ? balances.checking + balances.savings + balances.credit
-    : 0
+  if (!balances) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-600">Unable to load account information</p>
+      </div>
+    )
+  }
+
+  const totalBalance = balances.checking + balances.savings + balances.credit
 
   return (
     <div className="space-y-8">
-      {/* Welcome Header */}
+      {/* Welcome Section */}
       <div className="text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Wallet className="h-8 w-8 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-800">
-            Welcome, {user?.email?.split('@')[0] || 'User'}
-          </h1>
-        </div>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          Welcome, {user?.email || 'User'}
+        </h1>
         <p className="text-gray-600">Manage your accounts and transfers</p>
       </div>
 
-      {/* Demo Accounts Card */}
-      <DemoAccountsCard />
-
-      {/* Account Balances Grid */}
+      {/* Account Balances */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <AccountCard
           title="Checking Account"
-          balance={balances?.checking || 0}
+          balance={balances.checking}
           accountNumber="****1234"
           type="checking"
         />
         <AccountCard
           title="Savings Account"
-          balance={balances?.savings || 0}
+          balance={balances.savings}
           accountNumber="****5678"
           type="savings"
         />
         <AccountCard
           title="Credit Account"
-          balance={balances?.credit || 0}
+          balance={balances.credit}
           accountNumber="****9012"
           type="credit"
         />
-        <TotalBalanceCard balance={totalBalance} />
+        <TotalBalanceCard totalBalance={totalBalance} />
       </div>
 
-      {/* Transfer and Transaction History */}
+      {/* Transfer and Transaction Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <TransferForm onTransferSuccess={handleTransferSuccess} />
-        <TransactionHistory key={refreshKey} />
+        <TransactionHistory />
       </div>
     </div>
   )
