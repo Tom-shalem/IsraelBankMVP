@@ -1,43 +1,37 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
+import { ReactNode } from "react"
 
 interface AccountCardProps {
   title: string
   balance: number
-  accountNumber?: string
-  className?: string
-  icon?: React.ReactNode
+  icon: ReactNode
 }
 
-export function AccountCard({ title, balance, accountNumber, className, icon }: AccountCardProps) {
-  const formatCurrency = (amount: number) => {
+export function AccountCard({ title, balance, icon }: AccountCardProps) {
+  const formatBalance = (amount: number) => {
     return new Intl.NumberFormat('he-IL', {
       style: 'currency',
       currency: 'ILS',
-      minimumFractionDigits: 2
+      minimumFractionDigits: 2,
     }).format(amount)
   }
 
   const isNegative = balance < 0
 
   return (
-    <Card className={cn("bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300", className)}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-gray-700 text-sm font-medium">
-          {icon}
+    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-gray-600">
           {title}
         </CardTitle>
-        {accountNumber && (
-          <p className="text-xs text-gray-500">Account: {accountNumber}</p>
-        )}
+        <div className="text-blue-600">
+          {icon}
+        </div>
       </CardHeader>
       <CardContent>
-        <p className={cn(
-          "text-2xl font-bold",
-          isNegative ? "text-red-600" : "text-green-600"
-        )}>
-          {formatCurrency(balance)}
-        </p>
+        <div className={`text-2xl font-bold ${isNegative ? 'text-red-600' : 'text-gray-800'}`}>
+          {formatBalance(balance)}
+        </div>
       </CardContent>
     </Card>
   )

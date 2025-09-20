@@ -5,6 +5,9 @@ import { getAccountBalances } from "@/api/banking"
 import { AccountCard } from "@/components/banking/AccountCard"
 import { TotalBalanceCard } from "@/components/banking/TotalBalanceCard"
 import { TransferForm } from "@/components/banking/TransferForm"
+import { TransactionHistory } from "@/components/banking/TransactionHistory"
+import { DemoAccountsCard } from "@/components/banking/DemoAccountsCard"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Wallet, CreditCard, PiggyBank, Loader2 } from "lucide-react"
 
 interface AccountBalances {
@@ -37,13 +40,17 @@ export function Dashboard() {
 
   useEffect(() => {
     loadBalances()
-  }, [])
+    // Store current user email for transaction tracking
+    if (currentUser?.email) {
+      localStorage.setItem('currentUserEmail', currentUser.email)
+    }
+  }, [currentUser])
 
   const handleTransferComplete = () => {
     loadBalances()
   }
 
-  const totalBalance = balances 
+  const totalBalance = balances
     ? balances.checking + balances.savings + balances.credit
     : 0
 
@@ -90,10 +97,38 @@ export function Dashboard() {
         <TotalBalanceCard totalBalance={totalBalance} />
       </div>
 
-      {/* Transfer Form */}
-      <div className="max-w-md mx-auto">
-        <TransferForm onTransferComplete={handleTransferComplete} />
-      </div>
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="transfer" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+          <TabsTrigger value="transfer" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            Transfer Money
+          </TabsTrigger>
+          <TabsTrigger value="transactions" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            Recent Transactions
+          </TabsTrigger>
+          <TabsTrigger value="demo" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            Demo Accounts
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="transfer" className="mt-6">
+          <div className="max-w-md mx-auto">
+            <TransferForm onTransferComplete={handleTransferComplete} />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="transactions" className="mt-6">
+          <div className="max-w-2xl mx-auto">
+            <TransactionHistory key={Date.now()} />
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="demo" className="mt-6">
+          <div className="max-w-md mx-auto">
+            <DemoAccountsCard />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
