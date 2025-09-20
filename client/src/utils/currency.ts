@@ -24,6 +24,10 @@ export function formatILS(amount: number): string {
   return `₪${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+export function formatILSWithSymbol(amount: number): string {
+  return formatILS(amount);
+}
+
 export function normalizeAccounts(accounts: Record<string, any>): Record<string, number> {
   return {
     checking: toFloat(accounts.checking || 0),
