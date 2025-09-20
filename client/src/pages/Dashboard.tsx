@@ -77,8 +77,15 @@ export function Dashboard() {
         </p>
       </div>
 
+      {/* Total Balance - Prominently displayed */}
+      <div className="flex justify-center">
+        <div className="w-full max-w-sm">
+          <TotalBalanceCard totalBalance={totalBalance} />
+        </div>
+      </div>
+
       {/* Account Balances */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <AccountCard
           title="Checking Account"
           balance={balances?.checking || 0}
@@ -94,7 +101,6 @@ export function Dashboard() {
           balance={balances?.credit || 0}
           icon={<CreditCard className="h-4 w-4" />}
         />
-        <TotalBalanceCard totalBalance={totalBalance} />
       </div>
 
       {/* Main Content Tabs */}
