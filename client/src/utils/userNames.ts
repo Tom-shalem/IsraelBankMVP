@@ -1,10 +1,14 @@
-// Utility function to get display name from email
-export const getDisplayName = (email: string): string => {
-  const emailToNameMap: Record<string, string> = {
-    'client@client.com': 'client',
-    'amit@client.com': 'Amit',
-  };
+export const getUserDisplayName = (email: string): string => {
+  if (!email) return 'Unknown User'
   
-  // Return mapped name if exists, otherwise fall back to email prefix
-  return emailToNameMap[email] || email.split('@')[0];
-};
+  // Extract username from email
+  const username = email.split('@')[0]
+  
+  // Capitalize first letter
+  return username.charAt(0).toUpperCase() + username.slice(1)
+}
+
+export const formatUserForDisplay = (email: string): string => {
+  const displayName = getUserDisplayName(email)
+  return `${displayName} (${email})`
+}

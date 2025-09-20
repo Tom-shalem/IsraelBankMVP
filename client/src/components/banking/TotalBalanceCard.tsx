@@ -1,37 +1,35 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TrendingUp } from "lucide-react"
+import { formatILSWithSymbol } from "@/utils/currency"
+import { TrendingUp, TrendingDown } from "lucide-react"
 
 interface TotalBalanceCardProps {
-  totalBalance: number
+  balance: number
 }
 
-export function TotalBalanceCard({ totalBalance }: TotalBalanceCardProps) {
-  const formatBalance = (amount: number) => {
-    const isNegative = amount < 0
-    const formattedAmount = `₪${Math.abs(amount).toFixed(2)}`
-    return isNegative ? `-${formattedAmount}` : formattedAmount
-  }
-
-  const getBalanceColor = (amount: number) => {
-    if (amount < 0) return "text-red-600"
-    return "text-green-600"
-  }
+export function TotalBalanceCard({ balance }: TotalBalanceCardProps) {
+  const isPositive = balance >= 0
 
   return (
-    <Card className="bg-gradient-to-br from-blue-600 to-blue-700 text-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-blue-100">
+    <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-100">
+          {isPositive ? (
+            <TrendingUp className="h-5 w-5" />
+          ) : (
+            <TrendingDown className="h-5 w-5" />
+          )}
           Total Balance
         </CardTitle>
-        <TrendingUp className="h-4 w-4 text-blue-200" />
       </CardHeader>
       <CardContent>
-        <div className={`text-3xl font-bold ${totalBalance < 0 ? 'text-red-200' : 'text-white'}`}>
-          {formatBalance(totalBalance)}
+        <div className="space-y-2">
+          <div className="text-2xl font-bold">
+            {formatILSWithSymbol(balance)}
+          </div>
+          <p className="text-xs text-blue-100">
+            Combined balance across all accounts
+          </p>
         </div>
-        <p className="text-xs text-blue-200 mt-1">
-          Combined balance across all accounts
-        </p>
       </CardContent>
     </Card>
   )
