@@ -20,7 +20,11 @@ export function toFloat(x: any, defaultValue: number = 0.0): number {
   }
 }
 
-export function formatILS(amount: number): string {
+export function formatILS(amount: number | undefined | null): string {
+  // Handle undefined, null, or invalid values
+  if (amount === null || amount === undefined || isNaN(amount)) {
+    amount = 0;
+  }
   return `₪${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
