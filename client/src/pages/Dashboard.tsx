@@ -1,122 +1,99 @@
-import { useEffect, useState } from "react";
-import { AccountCard } from "@/components/banking/AccountCard";
-import { TotalBalanceCard } from "@/components/banking/TotalBalanceCard";
-import { TransferForm } from "@/components/banking/TransferForm";
-import { User, getUserAccounts } from "@/api/banking";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/useToast";
-import { Loader2, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react"
+import { useAuth } from "@/contexts/AuthContext"
+import { useToast } from "@/hooks/useToast"
+import { getAccountBalances } from "@/api/banking"
+import { AccountCard } from "@/components/banking/AccountCard"
+import { TotalBalanceCard } from "@/components/banking/TotalBalanceCard"
+import { TransferForm } from "@/components/banking/TransferForm"
+import { Wallet, CreditCard, PiggyBank, Loader2 } from "lucide-react"
+
+interface AccountBalances {
+  checking: number
+  savings: number
+  credit: number
+}
 
 export function Dashboard() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const { user: authUser } = useAuth();
-  const { toast } = useToast();
+  const { currentUser } = useAuth()
+  const { toast } = useToast()
+  const [balances, setBalances] = useState<AccountBalances | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const loadUserData = async (showRefreshIndicator = false) => {
-    console.log('Loading user account data...');
-    if (showRefreshIndicator) {
-      setIsRefreshing(true);
-    } else {
-      setIsLoading(true);
-    }
-    
+  const loadBalances = async () => {
     try {
-      // Store user email for API mocking
-      if (authUser?.email) {
-        localStorage.setItem('userEmail', authUser.email);
-      }
-      
-      const response = await getUserAccounts() as { user: User };
-      console.log('User data loaded:', response.user);
-      setUser(response.user);
+      setIsLoading(true)
+      const response = await getAccountBalances()
+      setBalances(response.accounts)
     } catch (error) {
-      console.error('Failed to load user data:', error);
       toast({
         title: "Error",
-        description: "Failed to load account information",
+        description: "Failed to load account balances",
         variant: "destructive",
-      });
+      })
     } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    loadUserData();
-  }, [authUser]);
+    loadBalances()
+  }, [])
 
-  const handleTransferSuccess = () => {
-    console.log('Transfer successful, refreshing account data...');
-    loadUserData(true);
-  };
+  const handleTransferComplete = () => {
+    loadBalances()
+  }
 
-  const handleRefresh = () => {
-    loadUserData(true);
-  };
+  const totalBalance = balances 
+    ? balances.checking + balances.savings + balances.credit
+    : 0
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600" />
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
           <p className="text-gray-600">Loading your account information...</p>
         </div>
       </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <p className="text-gray-600">Unable to load account information</p>
-          <Button onClick={() => loadUserData()} variant="outline">
-            Try Again
-          </Button>
-        </div>
-      </div>
-    );
+    )
   }
 
   return (
     <div className="space-y-8">
-      {/* Welcome Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">
-            Welcome, {user.name}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Manage your accounts and transfer money securely
-          </p>
-        </div>
-        <Button
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          variant="outline"
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+      {/* Welcome Section */}
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          Welcome back, {currentUser?.email?.split('@')[0] || 'User'}!
+        </h1>
+        <p className="text-gray-600">
+          Account Number: ****1234
+        </p>
       </div>
 
-      {/* Account Cards Grid */}
+      {/* Account Balances */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {user.accounts.map((account) => (
-          <AccountCard key={account._id} account={account} />
-        ))}
-        <TotalBalanceCard accounts={user.accounts} />
+        <AccountCard
+          title="Checking Account"
+          balance={balances?.checking || 0}
+          icon={<Wallet className="h-4 w-4" />}
+        />
+        <AccountCard
+          title="Savings Account"
+          balance={balances?.savings || 0}
+          icon={<PiggyBank className="h-4 w-4" />}
+        />
+        <AccountCard
+          title="Credit Account"
+          balance={balances?.credit || 0}
+          icon={<CreditCard className="h-4 w-4" />}
+        />
+        <TotalBalanceCard totalBalance={totalBalance} />
       </div>
 
       {/* Transfer Form */}
-      <div className="max-w-md">
-        <TransferForm onTransferSuccess={handleTransferSuccess} />
+      <div className="max-w-md mx-auto">
+        <TransferForm onTransferComplete={handleTransferComplete} />
       </div>
     </div>
-  );
+  )
 }

@@ -12,13 +12,14 @@ import { useToast } from "@/hooks/useToast"
 import { Building2, Loader2, Eye, EyeOff } from "lucide-react"
 
 const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
   password: z.string()
     .min(8, "Password must be at least 8 characters")
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 
-      "Password must contain uppercase, lowercase, number and special character"),
-  confirmPassword: z.string(),
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+  confirmPassword: z.string()
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -30,7 +31,7 @@ export function Register() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const { register: registerUser, user } = useAuth()
+  const { register: registerUser, currentUser } = useAuth()
   const navigate = useNavigate()
   const { toast } = useToast()
 
@@ -43,21 +44,21 @@ export function Register() {
   })
 
   useEffect(() => {
-    if (user) {
+    if (currentUser) {
       console.log('User already logged in, redirecting to dashboard...');
       navigate("/")
     }
-  }, [user, navigate])
+  }, [currentUser, navigate])
 
   const onSubmit = async (data: RegisterFormData) => {
-    console.log('Registration attempt:', { name: data.name, email: data.email });
+    console.log('Registration attempt:', { email: data.email });
     setIsLoading(true)
-    
+
     try {
-      await registerUser(data.name, data.email, data.password)
+      await registerUser(data.email, data.password)
       console.log('Registration successful, redirecting...');
       toast({
-        title: "Account created!",
+        title: "Welcome to Israel Bank!",
         description: "Your account has been created successfully.",
       })
       navigate("/")
@@ -65,7 +66,7 @@ export function Register() {
       console.error('Registration failed:', error);
       toast({
         title: "Registration failed",
-        description: error instanceof Error ? error.message : "An error occurred during registration",
+        description: error instanceof Error ? error.message : "Failed to create account",
         variant: "destructive",
       })
     } finally {
@@ -88,25 +89,12 @@ export function Register() {
           <div>
             <CardTitle className="text-2xl font-bold text-gray-800">Create Account</CardTitle>
             <CardDescription className="text-gray-600">
-              Join Israel Bank to manage your finances
+              Join Israel Bank today
             </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-gray-700">Full Name</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Enter your full name"
-                className="bg-white/70 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                {...register("name")}
-              />
-              {errors.name && (
-                <p className="text-sm text-red-600">{errors.name.message}</p>
-              )}
-            </div>
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-700">Email</Label>
               <Input
@@ -126,7 +114,7 @@ export function Register() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Create a password"
+                  placeholder="Enter your password"
                   className="bg-white/70 border-gray-300 focus:border-blue-500 focus:ring-blue-500 pr-10"
                   {...register("password")}
                 />
