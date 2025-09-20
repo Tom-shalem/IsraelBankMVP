@@ -2,13 +2,12 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/useToast"
 import { getAccountBalances } from "@/api/banking"
-import { AccountCard } from "@/components/banking/AccountCard"
-import { TotalBalanceCard } from "@/components/banking/TotalBalanceCard"
 import { TransferForm } from "@/components/banking/TransferForm"
 import { TransactionHistory } from "@/components/banking/TransactionHistory"
 import { Wallet, CreditCard, PiggyBank, Loader2, Send, Clock } from "lucide-react"
 import { getDisplayName } from "@/utils/userNames"
 import { Button } from "@/components/ui/button"
+import { formatILS } from "@/utils/currency"
 
 interface AccountBalances {
   checking: number
@@ -55,6 +54,12 @@ export function Dashboard() {
     ? balances.checking + balances.savings + balances.credit
     : 0
 
+  const getAmountColor = (amount: number) => {
+    if (amount > 0) return "text-green-600 font-bold"
+    if (amount < 0) return "text-red-600 font-bold"
+    return "text-gray-800 font-bold"
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -69,15 +74,17 @@ export function Dashboard() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Main Card Container */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+      <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
         {/* Welcome Section */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">
-            Welcome {currentUser?.email ? getDisplayName(currentUser.email) : 'User'}
-          </h1>
-          <p className="text-gray-500 text-sm">
-            Account: ****1234
-          </p>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-1">
+              Welcome {currentUser?.email ? getDisplayName(currentUser.email) : 'User'}
+            </h1>
+            <p className="text-gray-500 text-sm">
+              Account: ****1234
+            </p>
+          </div>
         </div>
 
         {/* Account Balances Grid */}
@@ -87,8 +94,8 @@ export function Dashboard() {
               <Wallet className="h-4 w-4 text-gray-500" />
               <span className="text-gray-500 text-sm">Checking</span>
             </div>
-            <div className="text-xl font-semibold text-gray-800">
-              ₪{balances?.checking?.toLocaleString() || '0'}
+            <div className={`text-xl ${getAmountColor(balances?.checking || 0)}`}>
+              ₪{formatILS(balances?.checking || 0)}
             </div>
           </div>
           <div className="bg-slate-50/80 border border-gray-200/60 rounded-xl p-4">
@@ -96,8 +103,8 @@ export function Dashboard() {
               <PiggyBank className="h-4 w-4 text-gray-500" />
               <span className="text-gray-500 text-sm">Savings</span>
             </div>
-            <div className="text-xl font-semibold text-gray-800">
-              ₪{balances?.savings?.toLocaleString() || '0'}
+            <div className={`text-xl ${getAmountColor(balances?.savings || 0)}`}>
+              ₪{formatILS(balances?.savings || 0)}
             </div>
           </div>
           <div className="bg-slate-50/80 border border-gray-200/60 rounded-xl p-4">
@@ -105,8 +112,8 @@ export function Dashboard() {
               <CreditCard className="h-4 w-4 text-gray-500" />
               <span className="text-gray-500 text-sm">Credit</span>
             </div>
-            <div className="text-xl font-semibold text-gray-800">
-              ₪{balances?.credit?.toLocaleString() || '0'}
+            <div className={`text-xl ${getAmountColor(balances?.credit || 0)}`}>
+              ₪{formatILS(balances?.credit || 0)}
             </div>
           </div>
         </div>
@@ -115,8 +122,8 @@ export function Dashboard() {
         <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/60 p-4 mb-6">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-gray-800">Total Balance</h3>
-            <div className="text-xl font-bold text-gray-800">
-              ₪{totalBalance.toLocaleString()}
+            <div className={`text-xl ${getAmountColor(totalBalance)}`}>
+              ₪{formatILS(totalBalance)}
             </div>
           </div>
         </div>
@@ -128,9 +135,8 @@ export function Dashboard() {
             className={`px-4 py-2 rounded-lg border-0 font-medium transition-all ${
               activeSection === 'transfer'
                 ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
-                : 'bg-gray-200/60 text-gray-600 opacity-60 cursor-default'
+                : 'bg-gray-200/60 text-gray-600 hover:bg-gray-300/60'
             }`}
-            disabled={activeSection !== 'transfer'}
           >
             <Send className="h-4 w-4 mr-2" />
             Transfer Money
@@ -140,9 +146,8 @@ export function Dashboard() {
             className={`px-4 py-2 rounded-lg border-0 font-medium transition-all ${
               activeSection === 'transactions'
                 ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
-                : 'bg-gray-200/60 text-gray-600 opacity-60 cursor-default'
+                : 'bg-gray-200/60 text-gray-600 hover:bg-gray-300/60'
             }`}
-            disabled={activeSection !== 'transactions'}
           >
             <Clock className="h-4 w-4 mr-2" />
             Recent Transactions

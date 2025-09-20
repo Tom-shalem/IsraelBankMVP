@@ -1,7 +1,4 @@
 import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,52 +6,54 @@ import { useToast } from "@/hooks/useToast"
 import { transferMoney } from "@/api/banking"
 import { Send, Loader2 } from "lucide-react"
 
-const transferSchema = z.object({
-  recipientEmail: z.string().email("Please enter a valid email address"),
-  amount: z.string().min(1, "Amount is required").refine(
-    (val) => !isNaN(Number(val)) && Number(val) > 0,
-    "Amount must be a positive number"
-  ),
-})
-
-type TransferFormData = z.infer<typeof transferSchema>
-
 interface TransferFormProps {
   onTransferComplete: () => void
 }
 
 export function TransferForm({ onTransferComplete }: TransferFormProps) {
+  const [recipientEmail, setRecipientEmail] = useState("")
+  const [amount, setAmount] = useState("500")
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset
-  } = useForm<TransferFormData>({
-    resolver: zodResolver(transferSchema),
-    defaultValues: {
-      recipientEmail: "",
-      amount: "500"
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!recipientEmail || !amount) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      })
+      return
     }
-  })
 
-  const onSubmit = async (data: TransferFormData) => {
-    setIsLoading(true)
+    const transferAmount = parseFloat(amount)
+    if (transferAmount <= 0) {
+      toast({
+        title: "Error",
+        description: "Amount must be greater than 0",
+        variant: "destructive",
+      })
+      return
+    }
 
     try {
-      const result = await transferMoney(data.recipientEmail, Number(data.amount))
+      setIsLoading(true)
+      await transferMoney(recipientEmail, transferAmount)
+      
       toast({
-        title: "Transfer Successful",
-        description: `₪${data.amount} transferred to ${data.recipientEmail}`,
+        title: "Success",
+        description: `Successfully transferred ₪${transferAmount.toFixed(2)} to ${recipientEmail}`,
       })
-      reset({ recipientEmail: "", amount: "500" })
+      
+      setRecipientEmail("")
+      setAmount("500")
       onTransferComplete()
     } catch (error) {
       toast({
         title: "Transfer Failed",
-        description: error instanceof Error ? error.message : "Transfer failed",
+        description: error instanceof Error ? error.message : "An error occurred",
         variant: "destructive",
       })
     } finally {
@@ -63,31 +62,27 @@ export function TransferForm({ onTransferComplete }: TransferFormProps) {
   }
 
   return (
-    <div>
-      <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-        <Send className="h-5 w-5 text-blue-600" />
-        Transfer Money
-      </h3>
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">Transfer Money</h3>
       
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="recipientEmail" className="text-gray-600 text-sm">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <Label htmlFor="recipient" className="text-gray-600 text-sm">
             Send To (email)
           </Label>
           <Input
-            id="recipientEmail"
+            id="recipient"
             type="email"
             placeholder="amit@client.com"
-            className="w-full bg-white/70 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
-            {...register("recipientEmail")}
+            value={recipientEmail}
+            onChange={(e) => setRecipientEmail(e.target.value)}
+            className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            required
           />
-          {errors.recipientEmail && (
-            <p className="text-sm text-red-600">{errors.recipientEmail.message}</p>
-          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3 items-end">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
             <Label htmlFor="amount" className="text-gray-600 text-sm">
               Amount (ILS)
             </Label>
@@ -96,35 +91,37 @@ export function TransferForm({ onTransferComplete }: TransferFormProps) {
               type="number"
               step="0.01"
               min="0.01"
-              className="bg-white/70 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
-              {...register("amount")}
+              placeholder="500.00"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+              required
             />
-            {errors.amount && (
-              <p className="text-sm text-red-600">{errors.amount.message}</p>
-            )}
           </div>
           
-          <Button
-            type="submit"
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 hover:shadow-lg border-0 md:self-end"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              <>
-                <Send className="mr-2 h-4 w-4" />
-                Transfer
-              </>
-            )}
-          </Button>
+          <div className="flex items-end">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Transfer
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
-        <p className="text-gray-500 text-xs mt-3">
-          * No CSRF protection (for later demo).
+        <p className="text-xs text-gray-500 mt-2">
+          * No CSRF protection (for demo purposes).
         </p>
       </form>
     </div>
