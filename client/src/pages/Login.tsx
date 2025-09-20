@@ -10,7 +10,6 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useNavigate, Link } from "react-router-dom"
 import { useToast } from "@/hooks/useToast"
 import { Building2, Loader2, Eye, EyeOff } from "lucide-react"
-import { DemoAccountsCard } from "@/components/banking/DemoAccountsCard"
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -30,7 +29,6 @@ export function Login() {
     register,
     handleSubmit,
     formState: { errors },
-    setValue
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   })
@@ -45,7 +43,7 @@ export function Login() {
   const onSubmit = async (data: LoginFormData) => {
     console.log('Login attempt:', { email: data.email });
     setIsLoading(true)
-    
+
     try {
       await login(data.email, data.password)
       console.log('Login successful, redirecting...');
@@ -66,130 +64,94 @@ export function Login() {
     }
   }
 
-  const fillDemoCredentials = (email: string, password: string) => {
-    setValue("email", email);
-    setValue("password", password);
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        {/* Login Form */}
-        <div className="flex justify-center">
-          <Card className="w-full max-w-md bg-white/90 backdrop-blur-sm border-0 shadow-xl">
-            <CardHeader className="space-y-4 text-center">
-              <div className="flex items-center justify-center gap-3">
-                <Building2 className="h-10 w-10 text-blue-600" />
-                <div className="flex items-center gap-1">
-                  <span className="text-2xl font-bold text-blue-600">Israel</span>
-                  <span className="text-2xl font-bold text-gray-800">Bank</span>
-                </div>
-                <div className="w-8 h-6 bg-gradient-to-b from-blue-500 via-white to-blue-500 rounded-sm border border-gray-300 shadow-sm"></div>
+      <div className="w-full max-w-md">
+        <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl">
+          <CardHeader className="space-y-4 text-center">
+            <div className="flex items-center justify-center gap-3">
+              <Building2 className="h-10 w-10 text-blue-600" />
+              <div className="flex items-center gap-1">
+                <span className="text-2xl font-bold text-blue-600">Israel</span>
+                <span className="text-2xl font-bold text-gray-800">Bank</span>
               </div>
-              <div>
-                <CardTitle className="text-2xl font-bold text-gray-800">Welcome Back</CardTitle>
-                <CardDescription className="text-gray-600">
-                  Sign in to your account to continue
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-700">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    className="bg-white/70 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    {...register("email")}
-                  />
-                  {errors.email && (
-                    <p className="text-sm text-red-600">{errors.email.message}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-gray-700">Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
-                      className="bg-white/70 border-gray-300 focus:border-blue-500 focus:ring-blue-500 pr-10"
-                      {...register("password")}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-gray-400" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-gray-400" />
-                      )}
-                    </Button>
-                  </div>
-                  {errors.password && (
-                    <p className="text-sm text-red-600">{errors.password.message}</p>
-                  )}
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing in...
-                    </>
-                  ) : (
-                    "Sign In"
-                  )}
-                </Button>
-              </form>
-              <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
-                  Don't have an account?{" "}
-                  <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium">
-                    Sign up
-                  </Link>
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Demo Accounts */}
-        <div className="flex justify-center">
-          <div className="w-full max-w-md">
-            <DemoAccountsCard />
-            <div className="mt-4 text-center">
-              <p className="text-sm text-gray-600 mb-2">Quick Login:</p>
-              <div className="space-y-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fillDemoCredentials("client@client.com", "Client2025$")}
-                  className="w-full text-left justify-start"
-                >
-                  Use David Cohen's Account
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fillDemoCredentials("amit@client.com", "Client2025$")}
-                  className="w-full text-left justify-start"
-                >
-                  Use Amit Levy's Account
-                </Button>
-              </div>
+              <div className="w-8 h-6 bg-gradient-to-b from-blue-500 via-white to-blue-500 rounded-sm border border-gray-300 shadow-sm"></div>
             </div>
-          </div>
-        </div>
+            <div>
+              <CardTitle className="text-2xl font-bold text-gray-800">Welcome Back</CardTitle>
+              <CardDescription className="text-gray-600">
+                Sign in to your account to continue
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-gray-700">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  className="bg-white/70 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  {...register("email")}
+                />
+                {errors.email && (
+                  <p className="text-sm text-red-600">{errors.email.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-gray-700">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    className="bg-white/70 border-gray-300 focus:border-blue-500 focus:ring-blue-500 pr-10"
+                    {...register("password")}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-400" />
+                    )}
+                  </Button>
+                </div>
+                {errors.password && (
+                  <p className="text-sm text-red-600">{errors.password.message}</p>
+                )}
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+            </form>
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Don't have an account?{" "}
+                <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+                  Sign up
+                </Link>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
