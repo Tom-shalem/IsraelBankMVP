@@ -5,7 +5,6 @@ import { AccountCard } from "@/components/banking/AccountCard";
 import { TotalBalanceCard } from "@/components/banking/TotalBalanceCard";
 import { TransferForm } from "@/components/banking/TransferForm";
 import { TransactionHistory } from "@/components/banking/TransactionHistory";
-import { DemoAccountsCard } from "@/components/banking/DemoAccountsCard";
 import { normalizeAccounts, totalBalance } from "@/utils/currency";
 import { getUserDisplayName } from "@/utils/userNames";
 import { useToast } from "@/hooks/useToast";
@@ -193,7 +192,6 @@ export function Dashboard() {
         {/* Left Column */}
         <div className="space-y-6">
           <TransferForm onTransferComplete={handleTransferComplete} />
-          <DemoAccountsCard />
         </div>
 
         {/* Right Column */}
