@@ -1,111 +1,108 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Users, Copy, CheckCircle } from "lucide-react";
-import { useState } from "react";
-import { useToast } from "@/hooks/useToast";
+import { Users, UserCheck, Mail } from "lucide-react";
 
-const DEMO_ACCOUNTS = [
-  {
-    email: "client@client.com",
-    password: "Client2025$",
-    description: "Primary demo account with substantial balances"
-  },
-  {
-    email: "amit@client.com", 
-    password: "Client2025$",
-    description: "Secondary demo account for transfer testing"
-  }
-];
+interface DemoAccountsCardProps {
+  onUserSwitch: (email: string) => void;
+  currentUser: string;
+  availableUsers: string[];
+}
 
-export function DemoAccountsCard() {
-  const [copiedField, setCopiedField] = useState<string | null>(null);
-  const { toast } = useToast();
-
-  const copyToClipboard = async (text: string, field: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedField(field);
-      toast({
-        title: "Copied!",
-        description: `${field} copied to clipboard`,
-      });
-      setTimeout(() => setCopiedField(null), 2000);
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to copy to clipboard",
-        variant: "destructive",
-      });
+export function DemoAccountsCard({ onUserSwitch, currentUser, availableUsers }: DemoAccountsCardProps) {
+  const demoUsers = [
+    {
+      email: "client@client.com",
+      name: "Client User",
+      description: "Primary demo account with substantial balances",
+      role: "Customer"
+    },
+    {
+      email: "amit@client.com", 
+      name: "Amit Client",
+      description: "Secondary demo account for transfer testing",
+      role: "Customer"
+    },
+    {
+      email: "admin@bank.com",
+      name: "Bank Admin",
+      description: "Administrative account with elevated privileges",
+      role: "Admin"
     }
-  };
+  ];
 
   return (
-    <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200 shadow-lg">
+    <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200 shadow-lg">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-amber-800">
+        <CardTitle className="flex items-center gap-2 text-indigo-800">
           <Users className="h-5 w-5" />
           Demo Accounts
+          <Badge variant="secondary" className="ml-2">
+            Switch Users
+          </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {DEMO_ACCOUNTS.map((account, index) => (
-          <div key={index} className="p-4 bg-white/70 rounded-lg border border-amber-200">
-            <div className="flex items-center justify-between mb-2">
-              <Badge variant="secondary" className="bg-amber-200 text-amber-800">
-                Demo Account {index + 1}
-              </Badge>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Email:</span>
-                <div className="flex items-center gap-2">
-                  <code className="text-sm bg-gray-100 px-2 py-1 rounded">
-                    {account.email}
-                  </code>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyToClipboard(account.email, "Email")}
-                    className="h-6 w-6 p-0"
-                  >
-                    {copiedField === "Email" ? (
-                      <CheckCircle className="h-3 w-3 text-green-600" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
-                  </Button>
+      <CardContent>
+        <div className="space-y-3">
+          <p className="text-sm text-indigo-700 mb-4">
+            Switch between demo accounts to test transfers and view different perspectives:
+          </p>
+          
+          {demoUsers.map((user) => (
+            <div
+              key={user.email}
+              className={`flex items-center justify-between p-4 rounded-lg border transition-all duration-200 ${
+                currentUser === user.email
+                  ? 'bg-indigo-100 border-indigo-300 shadow-md'
+                  : 'bg-white/70 border-gray-200 hover:bg-white hover:shadow-md'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-10 h-10 bg-indigo-100 rounded-full">
+                  {currentUser === user.email ? (
+                    <UserCheck className="h-5 w-5 text-indigo-600" />
+                  ) : (
+                    <Mail className="h-5 w-5 text-indigo-600" />
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-gray-900">{user.name}</p>
+                    <Badge 
+                      variant={user.role === 'Admin' ? 'default' : 'secondary'}
+                      className="text-xs"
+                    >
+                      {user.role}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600">{user.email}</p>
+                  <p className="text-xs text-gray-500">{user.description}</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Password:</span>
-                <div className="flex items-center gap-2">
-                  <code className="text-sm bg-gray-100 px-2 py-1 rounded">
-                    {account.password}
-                  </code>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyToClipboard(account.password, "Password")}
-                    className="h-6 w-6 p-0"
-                  >
-                    {copiedField === "Password" ? (
-                      <CheckCircle className="h-3 w-3 text-green-600" />
-                    ) : (
-                      <Copy className="h-3 w-3" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-              <p className="text-xs text-gray-600 mt-2">
-                {account.description}
-              </p>
+              
+              {currentUser === user.email ? (
+                <Badge variant="default" className="bg-indigo-600">
+                  Current
+                </Badge>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onUserSwitch(user.email)}
+                  className="hover:bg-indigo-50 hover:border-indigo-300"
+                >
+                  Switch
+                </Button>
+              )}
             </div>
+          ))}
+          
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <p className="text-xs text-amber-800">
+              <strong>Note:</strong> All demo accounts use password "Client2025$" for testing purposes.
+              Transfers between accounts are processed instantly with real-time balance updates.
+            </p>
           </div>
-        ))}
-        <div className="text-xs text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
-          <strong>Note:</strong> These are demo credentials for testing purposes. 
-          Use them to explore the banking features and test money transfers between accounts.
         </div>
       </CardContent>
     </Card>
