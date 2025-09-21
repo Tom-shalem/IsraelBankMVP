@@ -19,46 +19,44 @@ export const getAccountBalances = async () => {
   });
   // Uncomment the below lines to make an actual API call
   // try {
-  //   const response = await api.get('/api/banking/accounts');
-  //   return response.data;
+  //   return await api.get('/api/banking/accounts');
   // } catch (error) {
-  //   throw new Error(error?.response?.data?.message || error.message);
+  //   throw new Error(error?.response?.data?.error || error.message);
   // }
 };
 
-// Description: Transfer money between users
+// Description: Transfer money between accounts
 // Endpoint: POST /api/banking/transfer
 // Request: { recipientEmail: string, amount: number }
 // Response: { success: boolean, message: string, newBalance: number }
-export const transferMoney = async (recipientEmail: string, amount: number) => {
+export const transferMoney = async (data: { recipientEmail: string; amount: number }) => {
   // Mocking the response
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      if (amount <= 0) {
+      if (data.amount <= 0) {
         reject(new Error('Amount must be positive'));
         return;
       }
-      if (amount > 15420.50) {
+      if (data.amount > 15420.50) {
         reject(new Error('Insufficient funds'));
         return;
       }
-      if (!recipientEmail.includes('@')) {
-        reject(new Error('Invalid recipient email'));
+      if (!data.recipientEmail.includes('@')) {
+        reject(new Error('Invalid email address'));
         return;
       }
       resolve({
         success: true,
         message: 'Transfer completed successfully',
-        newBalance: 15420.50 - amount
+        newBalance: 15420.50 - data.amount
       });
     }, 1000);
   });
   // Uncomment the below lines to make an actual API call
   // try {
-  //   const response = await api.post('/api/banking/transfer', { recipientEmail, amount });
-  //   return response.data;
+  //   return await api.post('/api/banking/transfer', data);
   // } catch (error) {
-  //   throw new Error(error?.response?.data?.message || error.message);
+  //   throw new Error(error?.response?.data?.error || error.message);
   // }
 };
 
@@ -77,20 +75,20 @@ export const getTransactionHistory = async () => {
             type: 'transfer_out',
             amount: -500.00,
             recipient: 'amit@client.com',
-            date: '2025-01-08T10:30:00Z'
+            date: '2024-01-15T10:30:00Z'
           },
           {
             id: '2',
-            type: 'deposit',
-            amount: 2000.00,
-            date: '2025-01-07T14:15:00Z'
+            type: 'transfer_in',
+            amount: 1200.00,
+            recipient: 'john@example.com',
+            date: '2024-01-14T14:20:00Z'
           },
           {
             id: '3',
-            type: 'transfer_in',
-            amount: 750.00,
-            sender: 'amit@client.com',
-            date: '2025-01-06T09:45:00Z'
+            type: 'deposit',
+            amount: 2500.00,
+            date: '2024-01-13T09:15:00Z'
           }
         ]
       });
@@ -98,9 +96,8 @@ export const getTransactionHistory = async () => {
   });
   // Uncomment the below lines to make an actual API call
   // try {
-  //   const response = await api.get('/api/banking/transactions');
-  //   return response.data;
+  //   return await api.get('/api/banking/transactions');
   // } catch (error) {
-  //   throw new Error(error?.response?.data?.message || error.message);
+  //   throw new Error(error?.response?.data?.error || error.message);
   // }
 };
