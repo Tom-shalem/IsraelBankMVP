@@ -19,7 +19,7 @@ export function TransferForm({ onTransferComplete }: TransferFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!recipientEmail || !amount) {
       toast({
         title: "Error",
@@ -41,7 +41,7 @@ export function TransferForm({ onTransferComplete }: TransferFormProps) {
 
     setIsLoading(true);
     try {
-      await transferMoney(recipientEmail, transferAmount);
+      await transferMoney({ recipientEmail, amount: transferAmount });
       toast({
         title: "Success",
         description: `Successfully transferred ${transferAmount} ILS to ${recipientEmail}`,
@@ -94,8 +94,8 @@ export function TransferForm({ onTransferComplete }: TransferFormProps) {
               disabled={isLoading}
             />
           </div>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
             disabled={isLoading}
           >
