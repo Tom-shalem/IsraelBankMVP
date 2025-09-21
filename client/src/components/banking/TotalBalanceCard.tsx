@@ -1,51 +1,58 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatILS } from "@/utils/currency";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface TotalBalanceCardProps {
-  total: number;
+  totalBalance: number;
   loading?: boolean;
 }
 
-export function TotalBalanceCard({ total, loading }: TotalBalanceCardProps) {
-  const isPositive = total >= 0;
+export function TotalBalanceCard({ totalBalance, loading }: TotalBalanceCardProps) {
+  const isPositive = totalBalance >= 0;
+  const TrendIcon = isPositive ? TrendingUp : TrendingDown;
 
   if (loading) {
     return (
-      <Card className="bg-gradient-to-br from-indigo-50 via-white to-indigo-100 border-indigo-200 shadow-lg">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-xl font-bold text-indigo-800">
-            <div className="h-6 w-6 bg-gray-200 rounded animate-pulse" />
+      <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200 shadow-lg">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium text-indigo-700">
             Total Balance
           </CardTitle>
+          <DollarSign className="h-4 w-4 text-indigo-500" />
         </CardHeader>
         <CardContent>
-          <div className="h-9 bg-gray-200 rounded animate-pulse mb-2" />
-          <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+          <div className="animate-pulse">
+            <div className="h-10 bg-indigo-300 rounded w-40 mb-2"></div>
+            <div className="h-4 bg-indigo-300 rounded w-32"></div>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="bg-gradient-to-br from-indigo-50 via-white to-indigo-100 border-indigo-200 shadow-lg">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-xl font-bold text-indigo-800">
-          {isPositive ? (
-            <TrendingUp className="h-6 w-6 text-green-600" />
-          ) : (
-            <TrendingDown className="h-6 w-6 text-red-600" />
-          )}
+    <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200 shadow-lg hover:shadow-xl transition-all duration-300">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-indigo-700">
           Total Balance
         </CardTitle>
+        <div className="p-2 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600">
+          <DollarSign className="h-4 w-4 text-white" />
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="text-3xl font-bold">
-          <span className={isPositive ? "text-green-700" : "text-red-600"}>
-            {formatILS(total)}
-          </span>
+        <div className={cn(
+          "text-3xl font-bold flex items-center gap-2",
+          isPositive ? "text-green-600" : "text-red-600"
+        )}>
+          {formatILS(totalBalance)}
+          <TrendIcon className={cn(
+            "h-6 w-6",
+            isPositive ? "text-green-500" : "text-red-500"
+          )} />
         </div>
-        <p className="text-sm text-gray-600 mt-2">
+        <p className="text-xs text-indigo-600 mt-2 font-medium">
           Combined balance across all accounts
         </p>
       </CardContent>
