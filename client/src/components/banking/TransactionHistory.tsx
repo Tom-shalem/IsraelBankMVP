@@ -1,138 +1,161 @@
-import { useState, useEffect } from "react"
-import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/hooks/useToast"
-import { getTransactions } from "@/api/banking"
-import { History, ArrowUpRight, ArrowDownLeft, Loader2 } from "lucide-react"
-import { formatILSWithSymbol } from "@/utils/currency"
-import { buildRecentTransactions } from "@/utils/transactionNormalizer"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { formatCurrency } from "@/utils/currency";
+import { ArrowUpRight, ArrowDownLeft, Plus, Minus, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Transaction {
-  id: string
-  date: string
-  type: string
-  amount: number
-  description: string
-  recipientEmail?: string
-  senderEmail?: string
+  _id: string;
+  type: 'transfer_in' | 'transfer_out' | 'deposit' | 'withdrawal';
+  amount: number;
+  recipientEmail?: string;
+  senderEmail?: string;
+  timestamp: string;
+  status: string;
 }
 
-export function TransactionHistory() {
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const { toast } = useToast()
+interface TransactionHistoryProps {
+  transactions: Transaction[];
+  loading?: boolean;
+}
 
-  const loadTransactions = async () => {
-    try {
-      setIsLoading(true)
-      const response = await getTransactions()
-      setTransactions(response.transactions || [])
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load transaction history",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
+export function TransactionHistory({ transactions, loading }: TransactionHistoryProps) {
+  const getTransactionIcon = (type: string) => {
+    switch (type) {
+      case 'transfer_in':
+        return <ArrowDownLeft className="h-4 w-4 text-green-600" />;
+      case 'transfer_out':
+        return <ArrowUpRight className="h-4 w-4 text-red-600" />;
+      case 'deposit':
+        return <Plus className="h-4 w-4 text-blue-600" />;
+      case 'withdrawal':
+        return <Minus className="h-4 w-4 text-orange-600" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-600" />;
     }
-  }
+  };
 
-  useEffect(() => {
-    loadTransactions()
-  }, [])
+  const getTransactionColor = (type: string) => {
+    switch (type) {
+      case 'transfer_in':
+      case 'deposit':
+        return 'text-green-600';
+      case 'transfer_out':
+      case 'withdrawal':
+        return 'text-red-600';
+      default:
+        return 'text-gray-600';
+    }
+  };
 
-  const formatAmount = (amount: number, sign: string) => {
-    return `${sign}${formatILSWithSymbol(amount)}`
-  }
+  const getTransactionDescription = (transaction: Transaction) => {
+    switch (transaction.type) {
+      case 'transfer_in':
+        return `From ${transaction.senderEmail || 'Unknown'}`;
+      case 'transfer_out':
+        return `To ${transaction.recipientEmail || 'Unknown'}`;
+      case 'deposit':
+        return 'Account Deposit';
+      case 'withdrawal':
+        return 'Account Withdrawal';
+      default:
+        return 'Transaction';
+    }
+  };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (timestamp: string) => {
+    return new Date(timestamp).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
+      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
-    })
-  }
+    });
+  };
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-xl p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <History className="h-5 w-5 text-blue-600" />
-          <h3 className="text-lg font-semibold text-gray-800">Recent Transactions</h3>
-        </div>
-        <div className="flex items-center justify-center py-8">
-          <div className="text-center">
-            <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2 text-blue-600" />
-            <p className="text-sm text-gray-600">Loading transactions...</p>
+      <Card className="bg-white/70 backdrop-blur-sm border-gray-200 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-gray-900">
+            <Clock className="h-5 w-5 text-blue-600" />
+            Transaction History
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center justify-between p-4 bg-gray-100 rounded-lg animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+                  <div className="space-y-2">
+                    <div className="w-32 h-4 bg-gray-300 rounded"></div>
+                    <div className="w-24 h-3 bg-gray-300 rounded"></div>
+                  </div>
+                </div>
+                <div className="w-20 h-4 bg-gray-300 rounded"></div>
+              </div>
+            ))}
           </div>
-        </div>
-      </div>
-    )
+        </CardContent>
+      </Card>
+    );
   }
-
-  // Get current user email and normalize transactions
-  const currentUserEmail = localStorage.getItem('currentUserEmail') || 'client@client.com'
-  const normalizedTransactions = buildRecentTransactions(currentUserEmail, transactions)
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm border-0 shadow-lg rounded-xl p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <History className="h-5 w-5 text-blue-600" />
-        <h3 className="text-lg font-semibold text-gray-800">Recent Transactions</h3>
-      </div>
-      {normalizedTransactions.length === 0 ? (
-        <div className="text-center py-8">
-          <History className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No transactions yet</p>
-          <p className="text-sm text-gray-400">Your transaction history will appear here</p>
-        </div>
-      ) : (
-        <div className="space-y-3 max-h-96 overflow-y-auto">
-          {normalizedTransactions
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            .map((transaction) => (
+    <Card className="bg-white/70 backdrop-blur-sm border-gray-200 shadow-lg">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-gray-900">
+          <Clock className="h-5 w-5 text-blue-600" />
+          Transaction History
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {transactions.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <Clock className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <p>No transactions found</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {transactions.map((transaction) => (
               <div
-                key={transaction.id}
-                className="flex items-center justify-between p-3 bg-gray-50/50 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+                key={transaction._id}
+                className="flex items-center justify-between p-4 bg-white/50 rounded-lg border border-gray-100 hover:bg-white/80 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-full ${
-                    transaction.class === 'pos'
-                      ? 'bg-green-100 text-green-600'
-                      : 'bg-red-100 text-red-600'
-                  }`}>
-                    {transaction.incoming ? (
-                      <ArrowDownLeft className="h-4 w-4" />
-                    ) : (
-                      <ArrowUpRight className="h-4 w-4" />
-                    )}
+                  <div className="flex items-center justify-center w-10 h-10 bg-gray-50 rounded-full">
+                    {getTransactionIcon(transaction.type)}
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">
-                      {transaction.label} {transaction.peer}
+                  <div className="space-y-1">
+                    <p className="font-medium text-gray-900 capitalize">
+                      {transaction.type.replace('_', ' ')}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {getTransactionDescription(transaction)}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {formatDate(transaction.date)}
+                      {formatDate(transaction.timestamp)}
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <Badge
-                    variant={transaction.class === 'pos' ? "default" : "destructive"}
-                    className={`font-mono text-sm ${
-                      transaction.class === 'pos'
-                        ? 'bg-green-100 text-green-700 hover:bg-green-100'
-                        : 'bg-red-100 text-red-700 hover:bg-red-100'
-                    }`}
+                <div className="text-right space-y-1">
+                  <p className={cn("font-semibold", getTransactionColor(transaction.type))}>
+                    {transaction.type.includes('in') || transaction.type === 'deposit' ? '+' : '-'}
+                    {formatCurrency(transaction.amount)}
+                  </p>
+                  <Badge 
+                    variant={transaction.status === 'completed' ? 'default' : 'secondary'}
+                    className="text-xs"
                   >
-                    {formatAmount(transaction.amount, transaction.sign)}
+                    {transaction.status}
                   </Badge>
                 </div>
               </div>
             ))}
-        </div>
-      )}
-    </div>
-  )
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
