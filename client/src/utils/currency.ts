@@ -84,3 +84,18 @@ export function setTotal(payload: any, accountsRaw: Record<string, any>, forceTo
 
   return payload;
 }
+
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('he-IL', {
+    style: 'currency',
+    currency: 'ILS',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+export function parseCurrency(value: string): number {
+  // Remove currency symbols and parse as float
+  const cleaned = value.replace(/[^\d.-]/g, '');
+  return parseFloat(cleaned) || 0;
+}

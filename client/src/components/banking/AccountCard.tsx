@@ -1,53 +1,51 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatILS } from "@/utils/currency"
-import { CreditCard, PiggyBank, Wallet } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/utils/currency";
+import { cn } from "@/lib/utils";
 
 interface AccountCardProps {
-  title: string
-  balance: number
-  accountNumber: string
-  type: 'checking' | 'savings' | 'credit'
+  title: string;
+  balance: number;
+  accountNumber?: string;
+  type: 'checking' | 'savings' | 'credit';
 }
 
 export function AccountCard({ title, balance, accountNumber, type }: AccountCardProps) {
-  const getIcon = () => {
+  const isNegative = balance < 0;
+  
+  const getCardStyles = () => {
     switch (type) {
       case 'checking':
-        return <Wallet className="h-6 w-6 text-blue-600" />
+        return 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200';
       case 'savings':
-        return <PiggyBank className="h-6 w-6 text-green-600" />
+        return 'bg-gradient-to-br from-green-50 to-green-100 border-green-200';
       case 'credit':
-        return <CreditCard className="h-6 w-6 text-red-600" />
+        return 'bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200';
       default:
-        return <Wallet className="h-6 w-6 text-blue-600" />
+        return 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200';
     }
-  }
-
-  const getBalanceColor = () => {
-    if (type === 'credit') {
-      return balance < 0 ? 'text-red-600' : 'text-green-600'
-    }
-    return balance >= 0 ? 'text-green-600' : 'text-red-600'
-  }
+  };
 
   return (
-    <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-gray-600">
+    <Card className={cn("transition-all duration-200 hover:shadow-lg", getCardStyles())}>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-semibold text-gray-800">
           {title}
         </CardTitle>
-        {getIcon()}
+        {accountNumber && (
+          <p className="text-sm text-gray-600">
+            Account: ****{accountNumber.slice(-4)}
+          </p>
+        )}
       </CardHeader>
       <CardContent>
-        <div className="space-y-1">
-          <div className={`text-2xl font-bold ${getBalanceColor()}`}>
-            {formatILS(balance)}
-          </div>
-          <p className="text-xs text-gray-500">
-            Account: {accountNumber}
-          </p>
+        <div className="text-2xl font-bold">
+          <span className={cn(
+            isNegative ? "text-red-600" : "text-gray-900"
+          )}>
+            {formatCurrency(balance)}
+          </span>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

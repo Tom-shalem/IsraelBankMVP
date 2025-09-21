@@ -1,57 +1,36 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatILSWithSymbol } from "@/utils/currency"
-import { TrendingUp } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/utils/currency";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface TotalBalanceCardProps {
-  total?: number
-  data?: any
-  isLoading?: boolean
-  balances?: any
+  totalBalance: number;
 }
 
-export function TotalBalanceCard({ total, data, isLoading, balances }: TotalBalanceCardProps) {
-  // Always display 110,000 as requested by user
-  const displayTotal = 110000.0;
-
-  if (isLoading) {
-    return (
-      <Card className="bg-gradient-to-br from-blue-600 to-blue-700 text-white border-0 shadow-lg">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-blue-100">
-            Total Balance
-          </CardTitle>
-          <div className="h-6 w-6 bg-blue-500 rounded animate-pulse" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-1">
-            <div className="h-8 bg-blue-500 rounded animate-pulse" />
-            <p className="text-xs text-blue-200">
-              Combined all accounts
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+export function TotalBalanceCard({ totalBalance }: TotalBalanceCardProps) {
+  const isPositive = totalBalance >= 0;
 
   return (
-    <Card className="bg-gradient-to-br from-blue-600 to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-blue-100">
+    <Card className="bg-gradient-to-br from-indigo-50 via-white to-indigo-100 border-indigo-200 shadow-lg">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-xl font-bold text-indigo-800">
+          {isPositive ? (
+            <TrendingUp className="h-6 w-6 text-green-600" />
+          ) : (
+            <TrendingDown className="h-6 w-6 text-red-600" />
+          )}
           Total Balance
         </CardTitle>
-        <TrendingUp className="h-6 w-6 text-green-300" />
       </CardHeader>
       <CardContent>
-        <div className="space-y-1">
-          <div className="text-2xl font-bold text-white">
-            {formatILSWithSymbol(displayTotal)}
-          </div>
-          <p className="text-xs text-blue-200">
-            Combined all accounts
-          </p>
+        <div className="text-3xl font-bold">
+          <span className={isPositive ? "text-green-700" : "text-red-600"}>
+            {formatCurrency(totalBalance)}
+          </span>
         </div>
+        <p className="text-sm text-gray-600 mt-2">
+          Combined balance across all accounts
+        </p>
       </CardContent>
     </Card>
-  )
+  );
 }

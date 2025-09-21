@@ -1,58 +1,34 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Users, Mail, Key } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Info, User } from "lucide-react";
 
 export function DemoAccountsCard() {
   const demoAccounts = [
-    {
-      email: "client@client.com",
-      password: "Client2025$",
-      description: "Primary demo account"
-    },
-    {
-      email: "amit@client.com", 
-      password: "Client2025$",
-      description: "Secondary demo account"
-    },
-    {
-      email: "admin@bank.com",
-      password: "Admin2025$",
-      description: "Admin account"
-    }
-  ]
+    { email: "client@client.com", password: "Client2025$", description: "Primary demo account" },
+    { email: "amit@client.com", password: "Client2025$", description: "Secondary demo account" }
+  ];
 
   return (
-    <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-md">
+    <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg font-semibold text-blue-800">
-          <Users className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-amber-800">
+          <Info className="h-5 w-5" />
           Demo Accounts
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-3">
           {demoAccounts.map((account, index) => (
-            <div key={index} className="bg-white/60 backdrop-blur-sm rounded-lg p-4 border border-blue-100">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium text-gray-800">{account.email}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Key className="h-4 w-4 text-blue-600" />
-                  <Badge variant="outline" className="text-xs font-mono">
-                    {account.password}
-                  </Badge>
-                </div>
-                <p className="text-xs text-gray-600">{account.description}</p>
+            <div key={index} className="flex items-start gap-3 p-3 bg-white/60 rounded-lg">
+              <User className="h-4 w-4 text-amber-600 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-900">{account.email}</p>
+                <p className="text-sm text-gray-600">Password: {account.password}</p>
+                <p className="text-xs text-gray-500">{account.description}</p>
               </div>
             </div>
           ))}
         </div>
-        <p className="text-xs text-blue-700 mt-4 text-center">
-          Use these credentials to test money transfers between accounts
-        </p>
       </CardContent>
     </Card>
-  )
+  );
 }
