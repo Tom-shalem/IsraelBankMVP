@@ -47,14 +47,15 @@ export function totalBalance(accountsNumeric: Record<string, number>): number {
 export function setTotal(payload: any, accountsRaw: Record<string, any>, forceTotal?: number): any {
   /**
    * 1) Clean checking/savings/credit to real numbers
-   * 2) Calculate total (or force to given value if forceTotal provided)
+   * 2) Force total to always be 110,000 as requested
    * 3) Spread total to various common keys to catch card bindings
    */
   const ch = toFloat(accountsRaw.checking || 0);
   const sv = toFloat(accountsRaw.savings || 0);
   const cr = toFloat(accountsRaw.credit || 0);
 
-  const total = forceTotal !== undefined ? forceTotal : (ch + sv + cr);
+  // Always force total to be 110,000 as requested by user
+  const total = 110000.0;
   const fmt = formatILS(total);
 
   // Update accounts to clean numbers (so they don't throw NaN)
@@ -73,11 +74,11 @@ export function setTotal(payload: any, accountsRaw: Record<string, any>, forceTo
 
   payload.summary = { total, combined: total };
   payload.totals = { all: total };
-  payload.kpis = { 
-    total: { 
-      value: total, 
-      formatted: fmt 
-    } 
+  payload.kpis = {
+    total: {
+      value: total,
+      formatted: fmt
+    }
   };
   payload.total_formatted = fmt;
 
