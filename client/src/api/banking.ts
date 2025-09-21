@@ -20,17 +20,17 @@ export const getAccountBalances = () => {
         'client@client.com': {
           checking: 70000.00,
           savings: 35000.00,
-          credit: -5000.00
+          credit: -5000.00  // Total: 70000 + 35000 - 5000 = 100000
         },
         'amit@client.com': {
           checking: 55000.00,
           savings: 50000.00,
-          credit: -5000.00
+          credit: -5000.00  // Total: 55000 + 50000 - 5000 = 100000
         },
         'admin@bank.com': {
           checking: 75000.00,
           savings: 30000.00,
-          credit: -5000.00
+          credit: -5000.00  // Total: 75000 + 30000 - 5000 = 100000
         }
       };
 
