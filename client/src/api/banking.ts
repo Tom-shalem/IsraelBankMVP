@@ -261,8 +261,8 @@ export const getDashboardData = () => {
         transactions: transactionsResponse.transactions
       };
 
-      // Force total to be exactly 100,000 as requested, or calculate from accounts
-      setTotal(payload, balancesResponse.accounts, 100000.00);
+      // Force total to be exactly 110,000 as requested, or calculate from accounts
+      setTotal(payload, balancesResponse.accounts, 110000.00);
 
       resolve(payload);
     }, 500);
