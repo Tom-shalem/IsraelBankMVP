@@ -3,23 +3,15 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/utils/currency";
 import { ArrowUpRight, ArrowDownLeft, Plus, Minus, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface Transaction {
-  _id: string;
-  type: 'transfer_in' | 'transfer_out' | 'deposit' | 'withdrawal';
-  amount: number;
-  recipientEmail?: string;
-  senderEmail?: string;
-  timestamp: string;
-  status: string;
-}
+import { useTransactions } from "@/hooks/useTransactions";
 
 interface TransactionHistoryProps {
-  transactions: Transaction[];
   loading?: boolean;
 }
 
-export function TransactionHistory({ transactions, loading }: TransactionHistoryProps) {
+export function TransactionHistory({ loading }: TransactionHistoryProps) {
+  const { transactions } = useTransactions();
+
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'transfer_in':
@@ -48,7 +40,7 @@ export function TransactionHistory({ transactions, loading }: TransactionHistory
     }
   };
 
-  const getTransactionDescription = (transaction: Transaction) => {
+  const getTransactionDescription = (transaction: any) => {
     switch (transaction.type) {
       case 'transfer_in':
         return `From ${transaction.senderEmail || 'Unknown'}`;
@@ -108,6 +100,11 @@ export function TransactionHistory({ transactions, loading }: TransactionHistory
         <CardTitle className="flex items-center gap-2 text-gray-900">
           <Clock className="h-5 w-5 text-blue-600" />
           Transaction History
+          {transactions.length > 0 && (
+            <Badge variant="secondary" className="ml-2">
+              {transactions.length}
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -117,11 +114,11 @@ export function TransactionHistory({ transactions, loading }: TransactionHistory
             <p>No transactions found</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-96 overflow-y-auto">
             {transactions.map((transaction) => (
               <div
                 key={transaction._id}
-                className="flex items-center justify-between p-4 bg-white/50 rounded-lg border border-gray-100 hover:bg-white/80 transition-colors"
+                className="flex items-center justify-between p-4 bg-white/50 rounded-lg border border-gray-100 hover:bg-white/80 transition-all duration-200 hover:shadow-md"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-10 h-10 bg-gray-50 rounded-full">
@@ -144,7 +141,7 @@ export function TransactionHistory({ transactions, loading }: TransactionHistory
                     {transaction.type.includes('in') || transaction.type === 'deposit' ? '+' : '-'}
                     {formatCurrency(transaction.amount)}
                   </p>
-                  <Badge 
+                  <Badge
                     variant={transaction.status === 'completed' ? 'default' : 'secondary'}
                     className="text-xs"
                   >

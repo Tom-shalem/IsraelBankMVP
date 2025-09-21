@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Send, Loader2 } from "lucide-react";
 import { transferMoney } from "@/api/banking";
 import { useToast } from "@/hooks/useToast";
+import { useTransactions } from "@/hooks/useTransactions";
 
 interface TransferFormProps {
   onTransferComplete: () => void;
@@ -16,6 +17,7 @@ export function TransferForm({ onTransferComplete }: TransferFormProps) {
   const [amount, setAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { addTransaction } = useTransactions();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +44,16 @@ export function TransferForm({ onTransferComplete }: TransferFormProps) {
     setIsLoading(true);
     try {
       await transferMoney({ recipientEmail, amount: transferAmount });
+      
+      // Add transaction to local store
+      addTransaction({
+        type: 'transfer_out',
+        amount: transferAmount,
+        recipientEmail: recipientEmail,
+        timestamp: new Date().toISOString(),
+        status: 'completed'
+      });
+
       toast({
         title: "Success",
         description: `Successfully transferred ${transferAmount} ILS to ${recipientEmail}`,
