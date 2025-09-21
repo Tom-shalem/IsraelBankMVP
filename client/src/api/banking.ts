@@ -15,22 +15,22 @@ export const getAccountBalances = () => {
       // Get stored balances or use default values
       const storedBalances = JSON.parse(localStorage.getItem('userBalances') || '{}');
 
-      // Default balances that total to exactly 110,000 ILS
+      // Default balances that total to exactly 100,000 ILS
       const defaultBalances = {
         'client@client.com': {
-          checking: 75000.00,
-          savings: 40000.00,
-          credit: -5000.00  // Total: 75000 + 40000 - 5000 = 110000
+          checking: 70000.00,
+          savings: 35000.00,
+          credit: -5000.00
         },
         'amit@client.com': {
-          checking: 60000.00,
-          savings: 55000.00,
-          credit: -5000.00  // Total: 60000 + 55000 - 5000 = 110000
+          checking: 55000.00,
+          savings: 50000.00,
+          credit: -5000.00
         },
         'admin@bank.com': {
-          checking: 80000.00,
-          savings: 35000.00,
-          credit: -5000.00  // Total: 80000 + 35000 - 5000 = 110000
+          checking: 75000.00,
+          savings: 30000.00,
+          credit: -5000.00
         }
       };
 
@@ -94,18 +94,18 @@ export const transferMoney = (data: { recipientEmail: string; amount: number }) 
       // Initialize default balances if they don't exist
       const defaultBalances = {
         'client@client.com': {
-          checking: 75000.00,
-          savings: 40000.00,
+          checking: 70000.00,
+          savings: 35000.00,
           credit: -5000.00
         },
         'amit@client.com': {
-          checking: 60000.00,
-          savings: 55000.00,
+          checking: 55000.00,
+          savings: 50000.00,
           credit: -5000.00
         },
         'admin@bank.com': {
-          checking: 80000.00,
-          savings: 35000.00,
+          checking: 75000.00,
+          savings: 30000.00,
           credit: -5000.00
         }
       };
@@ -261,8 +261,8 @@ export const getDashboardData = () => {
         transactions: transactionsResponse.transactions
       };
 
-      // Force total to be exactly 110,000 as requested, or calculate from accounts
-      setTotal(payload, balancesResponse.accounts, 110000.00);
+      // Force total to be exactly 100,000 as requested, or calculate from accounts
+      setTotal(payload, balancesResponse.accounts, 100000.00);
 
       resolve(payload);
     }, 500);
