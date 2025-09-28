@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://israel-bank-mvp-1uubvercel.app/api/$1",
+      "permanent": true
+    }
+  ]
+}
