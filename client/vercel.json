@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://israel-bank-mvp-1uubvercel.app/api/$1",
+      "permanent": true
+    }
+  ]
+}
