@@ -1,13 +1,19 @@
-const mongoose = require('mongoose');
+const { connectDB } = require('../config/database.js');
+const User = require('./User.js');
 
-const dbInit = async (options = {}) => {
-  const mongoUrl = process.env.DATABASE_URL || 'mongodb://localhost/myDb';
-
+const dbInit = async () => {
   try {
-    await mongoose.connect(mongoUrl, options);
-    console.log(`Connected to MongoDB at ${mongoUrl}`);
+    console.log('Initializing SQLite3 database...');
+
+    // Connect to SQLite3 database
+    await connectDB();
+
+    // Create all tables
+    await User.createTable();
+
+    console.log('Database initialization completed successfully');
   } catch (err) {
-    console.error(`Error connecting to database ${mongoUrl}:`, err);
+    console.error('Error initializing database:', err);
     throw err;
   }
 };

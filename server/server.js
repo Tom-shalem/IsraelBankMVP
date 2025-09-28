@@ -1,18 +1,11 @@
 // Load environment variables
 require("dotenv").config();
-const mongoose = require("mongoose");
 const express = require("express");
 const session = require("express-session");
-const MongoStore = require('connect-mongo');
 const basicRoutes = require("./routes/index");
 const authRoutes = require("./routes/authRoutes");
-const { connectDB } = require("./config/database");
+const dbInit = require("./models/init");
 const cors = require("cors");
-
-if (!process.env.DATABASE_URL) {
-  console.error("Error: DATABASE_URL variables in .env missing.");
-  process.exit(-1);
-}
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -25,8 +18,11 @@ app.use(cors({}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Database connection
-connectDB();
+// Initialize SQLite3 database
+dbInit().catch((err) => {
+  console.error('Failed to initialize database:', err);
+  process.exit(1);
+});
 
 app.on("error", (error) => {
   console.error(`Server error: ${error.message}`);
