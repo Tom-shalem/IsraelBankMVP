@@ -22,9 +22,9 @@ router.post('/login', async (req, res) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    user.refreshToken = refreshToken;
-    await user.save();
-    return res.json({...user.toObject(), accessToken, refreshToken});
+  user.refreshToken = refreshToken;
+  await UserService.update(user.id, { refreshToken });
+  return res.json({ ...user, accessToken, refreshToken });
   } else {
     return sendError('Email or password is incorrect');
 
